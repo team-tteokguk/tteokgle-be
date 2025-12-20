@@ -16,6 +16,7 @@ services:
     volumes:
       - ./db_data:/var/lib/postgresql/data
 
+  # 2. server
   app:
     container_name: santa-backend
     build: .
