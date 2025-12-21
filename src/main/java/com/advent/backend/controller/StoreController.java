@@ -4,14 +4,12 @@ import com.advent.backend.dto.GuestBookDto;
 import com.advent.backend.dto.ItemDto;
 import com.advent.backend.dto.StoreDto;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Tag(name = "상점 관리", description = "상점 정보 조회 및 고명 조회, 수정, 등록")
 @RestController
