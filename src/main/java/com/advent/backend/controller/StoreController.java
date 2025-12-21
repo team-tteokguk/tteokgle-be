@@ -11,6 +11,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/stores")
 public class StoreController {
+    // 상점 API
     // 1. 상점 정보 불러오기
     @Operation(summary = "상점 정보", description = "특정 상점의 정보를 불러옵니다.")
     @GetMapping("/{storeId}")
@@ -21,12 +22,24 @@ public class StoreController {
                 "owner", "외요"
         ));
     }
-    // 2. 고명 등록하기
-    @Operation(summary = "고명 등록하기")
-    @PostMapping("/{storeId}/items")
+    // 2. 고명 리스트 조회하기
+    @Operation(summary = "고명 리스트 조회하기")
+    @GetMapping("/{storeId}/items")
     public ResponseEntity<?> addItem(
             @PathVariable String storeId,
             @RequestBody String item){
         return ResponseEntity.ok(Map.of());
     }
+    // 3. 고명 등록하기
+
+    // 4. 고명 삭제하기
+
+    // 방명록 API
+    // 1. 방명록 불러오기
+
+    // 2. 방명록 작성하기
+
+    // 3. 방명록 수정하기
+
+    // 4. 방명록 삭제하기
 }
