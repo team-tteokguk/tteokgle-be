@@ -1,5 +1,6 @@
 package com.advent.backend.dto;
 
+import com.advent.backend.entity.Item;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,13 +22,6 @@ public class ItemDto {
 
         @Schema(description = "고명 이미지")
         private String imageUrl;
-    }
-
-    // 컨텐츠 타입 (선택 안함, 사진, 유튜브)
-    public enum ContentType {
-        NONE,
-        PHOTO,
-        VIDEO
     }
 
     // RESPONSE
@@ -83,7 +77,7 @@ public class ItemDto {
         private String imageUrl;
 
         @Schema(description = "컨텐츠 타입")
-        private ContentType type;
+        private Item.ContentType contentType;
 
         @Schema(description = "컨텐츠 내용")
         private String mediaUrl;

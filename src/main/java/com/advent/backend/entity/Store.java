@@ -11,10 +11,17 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Store extends BaseTimeEntity {
-    @Id // pk (상점 ID)
+    // pk (상점 ID)
+    @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    // fk (상점 주인 ID)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "FK_USER_ID"))
+    private User user;
+
+    // 상점 이름
     @Column(nullable = false)
     private String title;
 }
