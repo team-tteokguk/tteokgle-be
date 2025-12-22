@@ -16,4 +16,12 @@ public class GuestBook extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    // 유저 ID
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(nullable = false, length = 200)
+    private String content;
 }
