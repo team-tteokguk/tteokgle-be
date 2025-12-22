@@ -9,6 +9,7 @@ import java.util.UUID;
 
 // 방명록
 @Entity
+@Table(name = "guestbooks")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GuestBook extends BaseTimeEntity {
@@ -18,7 +19,7 @@ public class GuestBook extends BaseTimeEntity {
     private UUID id;
 
     // 유저 ID
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 

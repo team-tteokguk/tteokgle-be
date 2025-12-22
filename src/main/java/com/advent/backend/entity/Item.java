@@ -9,6 +9,7 @@ import java.util.UUID;
 
 // 고명
 @Entity
+@Table(name = "items")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Item extends BaseTimeEntity {
@@ -55,6 +56,6 @@ public class Item extends BaseTimeEntity {
     private String content;
 
     // 판매 상태
-    @Column(nullable = false)
+    @Column(columnDefinition = "boolean default true", nullable = false)
     private boolean isAvailable = true;
 }
