@@ -60,7 +60,7 @@ public class ItemDto {
     @SuperBuilder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class UnPlacedItemResponse extends ItemBase {
+    public static class UnplacedItemResponse extends ItemBase {
         @Schema(description = "컨텐츠 확인 여부")
         private boolean isRead;
 

@@ -12,7 +12,7 @@ public class MemberDto {
     @Schema(description = "회원 정보 응답")
     public static class MemberResponse {
         @Schema(description = "회원 ID")
-        private String id;
+        private String userId;
 
         @Schema(description = "이메일")
         private String email;
