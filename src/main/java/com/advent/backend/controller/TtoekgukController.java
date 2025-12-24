@@ -105,4 +105,19 @@ public class TtoekgukController {
 
         return ResponseEntity.ok(response);
     }
+
+    @Operation(
+            summary = "고명 읽음 처리",
+            description = "읽은 적 없는 고명의 상태를 읽음 처리 합니다. (isRead = false)"
+    )
+    @PatchMapping("/me/items/{itemId}/read")
+    public ResponseEntity<Void> readItem(
+            @Parameter(hidden = true)
+            @RequestHeader("Authorization") String authorization,
+
+            @Parameter(description = "읽음 처리할 고명 ID", required = true)
+            @PathVariable UUID itemId
+    ) {
+        return ResponseEntity.ok().build();
+    }
 }
