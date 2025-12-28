@@ -8,41 +8,41 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-// 금전 기록
+// 알림
 @Entity
-@Table(name = "point-history-tbl")
+@Table(name = "alarms")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PointHistory extends BaseTimeEntity {
+public class Alarm extends BaseTimeEntity {
 
-    public enum TradeType {
-        CHARGE,
-        USE,
-        REFUND
+    public enum AlarmType {
+        COMMENT,
+        SALE,
+        SUBSCRIBE
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "history_id")
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "receiver_id", nullable = false)
+    @JoinColumn(name="receiver_id", nullable = false)
     private User receiver;
 
     @ManyToOne
     @JoinColumn(name = "sender_id")
     private User sender;
 
-    @ManyToOne
-    @JoinColumn(name = "item_id")
-    private Store item;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "trade_type", nullable = false)
-    private TradeType tradeType;
+    @Column(nullable = false)
+    private AlarmType alarmType;
 
-    @Column(name = "amount", nullable = false)
-    private Integer amount;
+    @Column(name = "target_id")
+    private UUID targetId;
 
+    @Column(name="message", length = 500)
+    private String message;
+
+    @Column(name="is_read")
+    private boolean isRead = false;
 }
