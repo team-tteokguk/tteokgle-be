@@ -13,7 +13,7 @@ import java.util.UUID;
 @Table(name = "alarms")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Alarm {
+public class Alarm extends BaseTimeEntity {
 
     public enum AlarmType {
         COMMENT,
@@ -45,7 +45,4 @@ public class Alarm {
 
     @Column(name="is_read")
     private boolean isRead = false;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
 }
