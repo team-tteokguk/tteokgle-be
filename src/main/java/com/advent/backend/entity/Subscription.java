@@ -26,7 +26,7 @@ public class Subscription extends BaseTimeEntity {
     // 구독하는 유저 ID
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private Member member;
 
     // 알림 수신 여부 (팝업)
     @Column(columnDefinition = "boolean default false",nullable = false)
