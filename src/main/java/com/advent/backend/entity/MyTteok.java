@@ -21,5 +21,5 @@ public class MyTteok {
     // 유저 ID
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private Member member;
 }

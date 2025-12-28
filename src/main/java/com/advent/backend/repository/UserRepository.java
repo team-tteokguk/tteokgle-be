@@ -1,6 +1,6 @@
 package com.advent.backend.repository;
 
-import com.advent.backend.entity.User;
+import com.advent.backend.entity.Member;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -13,16 +13,16 @@ public class UserRepository {
     @PersistenceContext
     private EntityManager em;
 
-    public void save(User user) {
-        em.persist(user);
+    public void save(Member member) {
+        em.persist(member);
     }
 
-    public User findOne(UUID id) {
-        return em.find(User.class, id);
+    public Member findOne(UUID id) {
+        return em.find(Member.class, id);
     }
 
-    public List<User> findAll() {
-        return em.createQuery("select u from User u", User.class)
+    public List<Member> findAll() {
+        return em.createQuery("select u from Member u", Member.class)
                 .getResultList();
     }
 }
