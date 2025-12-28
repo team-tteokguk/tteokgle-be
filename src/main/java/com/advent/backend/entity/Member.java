@@ -9,10 +9,10 @@ import java.util.UUID;
 
 // 사용자
 @Entity
-@Table(name = "users")
+@Table(name = "members")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class Member {
     public enum SocialType {
         NONE,
         KAKAO,

@@ -20,7 +20,7 @@ public class Store extends BaseTimeEntity {
     // fk (상점 주인 ID)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "FK_USER_ID"))
-    private User user;
+    private Member member;
 
     // 상점 이름
     @Column(nullable = false)
