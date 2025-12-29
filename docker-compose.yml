@@ -4,11 +4,13 @@ services:
   # 1. DB
   db:
     image: postgres:15-alpine
-    container_name: santa-postgres
+    container_name: tteokguk-postgres
     restart: always
     ports:
       - "5432:5432"
     shm_size: 128mb
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -18,7 +20,7 @@ services:
 
   # 2. server
   app:
-    container_name: santa-backend
+    container_name: tteokguk-backend
     build: .
     ports:
       - "8080:8080"

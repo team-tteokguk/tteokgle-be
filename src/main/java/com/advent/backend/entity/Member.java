@@ -1,9 +1,7 @@
 package com.advent.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -12,6 +10,8 @@ import java.util.UUID;
 @Table(name = "members")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Member {
     public enum SocialType {
         NONE,
@@ -31,13 +31,20 @@ public class Member {
 
     // 소셜 식별값
     @Column(nullable = false)
-    private String social_id;
+    private String socialId;
 
     // 유저 닉네임, 8자까지 (최소 글자는 비지니스 로직에서 판단)
     @Column(nullable = false, length = 8)
     private String nickname;
 
     // 보유 엽전
-    @Column(columnDefinition = "integer default 0", nullable = false)
+    @Column(nullable = false)
+    @Builder.Default
     private Integer point = 0;
+
+    // 서비스에서 사용할 업데이트 로직 (직접 작성)
+    public Member updateNickname(String nickname) {
+        this.nickname = nickname;
+        return this; // 메서드 체이닝을 위해 자기 자신 반환
+    }
 }
