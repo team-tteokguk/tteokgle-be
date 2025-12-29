@@ -27,11 +27,11 @@ public class Alarm extends BaseTimeEntity {
 
     @ManyToOne
     @JoinColumn(name="receiver_id", nullable = false)
-    private User receiver;
+    private Member receiver;
 
     @ManyToOne
     @JoinColumn(name = "sender_id")
-    private User sender;
+    private Member sender;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

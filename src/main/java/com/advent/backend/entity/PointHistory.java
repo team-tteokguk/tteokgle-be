@@ -28,11 +28,11 @@ public class PointHistory extends BaseTimeEntity {
 
     @ManyToOne
     @JoinColumn(name = "receiver_id", nullable = false)
-    private User receiver;
+    private Member receiver;
 
     @ManyToOne
     @JoinColumn(name = "sender_id")
-    private User sender;
+    private Member sender;
 
     @ManyToOne
     @JoinColumn(name = "item_id")
