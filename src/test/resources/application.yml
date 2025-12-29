@@ -1,0 +1,32 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: 648f00d2b4cbcc80278f8c7a51ae6647
+            client-secret: znCB51guYUqXiV30HLhiUySbbd1xSoit
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tteokgukdb
+    username: teamtteok
+    password: tteokguk
+#    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect

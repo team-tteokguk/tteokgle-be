@@ -38,7 +38,8 @@ public class Member {
     private String nickname;
 
     // 보유 엽전
-    @Column(columnDefinition = "integer default 0", nullable = false)
+    @Column(nullable = false)
+    @Builder.Default
     private Integer point = 0;
 
     // 서비스에서 사용할 업데이트 로직 (직접 작성)

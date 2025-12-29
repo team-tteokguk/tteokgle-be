@@ -29,11 +29,11 @@ public class MyItem {
     private Item item;
 
     // 컨텐츠 확인 여부
-    @Column(columnDefinition = "integer default false", nullable = false)
+    @Column(columnDefinition = "boolean default false", nullable = false)
     private boolean isRead = false;
 
     // 고명 올림 여부
-    @Column(columnDefinition = "integer default false", nullable = false)
+    @Column(columnDefinition = "boolean default false", nullable = false)
     private boolean isUsed = false;
 
     // 나의 고명 x, y, z 위치
