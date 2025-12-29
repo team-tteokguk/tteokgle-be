@@ -37,7 +37,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .map(member -> member.updateNickname(userInfo.getNickname())) // 있으면 업데이트
                 .orElseGet(() -> memberRepository.save(Member.builder() // 없으면 생성
                         .socialType(userInfo.getSocialType())
-                        .social_id(userInfo.getSocialId())
+                        .socialId(userInfo.getSocialId())
                         .nickname(userInfo.getNickname())
                         .build()));
 

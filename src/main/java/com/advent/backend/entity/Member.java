@@ -31,7 +31,7 @@ public class Member {
 
     // 소셜 식별값
     @Column(nullable = false)
-    private String social_id;
+    private String socialId;
 
     // 유저 닉네임, 8자까지 (최소 글자는 비지니스 로직에서 판단)
     @Column(nullable = false, length = 8)

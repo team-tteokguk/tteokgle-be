@@ -4,11 +4,11 @@ spring:
       client:
         registration:
           kakao:
-            client-id: {KAKAO_REST_API_KEY}
-            client-secret: {KAKAO_SECRET}
+            client-id: ${KAKAO_REST_API_KEY}
+            client-secret: ${KAKAO_SECRET}
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
-            redirect-uri: http://localhost:8080/auth/login/kakao
+            redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
         provider:
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
@@ -18,10 +18,9 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/${DB_NAME}
-
     username: ${DB_USER}
     password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
+#    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:

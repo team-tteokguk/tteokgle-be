@@ -10,6 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
     public static final String[] ALLOWED_URLS = {
+            "/",
             "/swagger-ui/**",
             "/swagger-resources/**",
             "/v3/api-docs/**",
@@ -28,7 +29,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/")
+                        .defaultSuccessUrl("/swagger-ui/index.html", true)
                 );
 
         return http.build();
