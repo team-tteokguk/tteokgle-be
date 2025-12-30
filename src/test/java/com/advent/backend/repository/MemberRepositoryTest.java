@@ -22,7 +22,8 @@ public class MemberRepositoryTest {
     private MemberRepository memberRepository;
 
     @Test
-    void 소셜_아이디와_소셜_타입으로_유저를_조회_테스트() {
+    @DisplayName("소셜아이디와 소셜타입으로 멤버 조회")
+    void should_FindMember_When_SocialIdAndTypeMatch() {
         String socialId = "unique_social_id_123";
         Member.SocialType socialType = Member.SocialType.KAKAO;
 
@@ -43,11 +44,23 @@ public class MemberRepositoryTest {
     }
 
     @Test
-    void 포인트_두_멤버_차감_증가_테스트() {
+    @DisplayName("두 멤버 포인트 증감 테스트")
+    void should_UpdatePoints_when_PointsTransferredBetweenMembers() {
+        Member.SocialType socialType = Member.SocialType.KAKAO;
+
         Member buyer = Member.builder()
-                .socialId("buyer").nickname("구매자").point(1000).build();
+                .socialId("buyer")
+                .socialType(socialType)
+                .nickname("구매자")
+                .point(1000)
+                .build();
+
         Member seller = Member.builder()
-                .socialId("seller").nickname("판매자").point(0).build();
+                .socialId("seller")
+                .socialType(socialType)
+                .nickname("판매자")
+                .point(0)
+                .build();
 
         memberRepository.save(buyer);
         memberRepository.save(seller);
@@ -65,7 +78,8 @@ public class MemberRepositoryTest {
     }
 
     @Test
-    void 포인트_특정_멤버_일괄_지급_테스트() {
+    @DisplayName("특정 멤버 포인트 일괄 지급 테스트")
+    void should_UpdatePointsForTargets_when_BatchDistributed(){
         String socialId = "unique_social_id_123";
         Member.SocialType socialType = Member.SocialType.KAKAO;
 
@@ -92,7 +106,8 @@ public class MemberRepositoryTest {
     }
 
     @Test
-    void 포인트_모든_멤버_일괄_지급_테스트() {
+    @DisplayName("모든 멤버 포인트 일괄 지급 테스트")
+    void should_UpdatePointsForAll_when_BatchDistributed() {
         String socialId = "unique_social_id_123";
         Member.SocialType socialType = Member.SocialType.KAKAO;
 
