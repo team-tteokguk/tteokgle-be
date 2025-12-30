@@ -1,0 +1,52 @@
+package com.advent.backend.repository;
+
+import com.advent.backend.entity.Member;
+import com.advent.backend.entity.Store;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface StoreRepository extends JpaRepository<Store, String> {
+
+    //기본 조회
+
+    // 특정 회원 상점 조회
+    Optional<Store> findByMember(Member member);
+
+    // 회원 ID로 상점 조회
+    Optional<Store> findByMemberId(String memberId);
+
+    // 상점 ID로 조회하면서 회원 정보 함께 가져오기
+    @Query("SELECT s FROM Store s LEFT JOIN FETCH s.member WHERE s.id = :storeId")
+    Optional<Store> findByIdWithMember(@Param("storeId") String storeId);
+
+    // 상점 이름으로 검색
+    Optional<Store> findByTitle(String title);
+
+    // 상점 이름으로 부분 검색 (포함 검색)
+    List<Store> findByTitleContaining(String keyword);
+
+    // 존재 여부 확인
+
+    //특정 회원이 상점을 가지고 있는지 확인
+    boolean existsByMember(Member member);
+
+    // 회원 ID로 상점 존재 여부 확인
+    boolean existsByMemberId(String memberId);
+
+    // 상점 ID 회원 ID 일치 확인 (권한 체크)
+    boolean existsByIdAndMemberId(String storeId, String memberId);
+
+    // 통계 및 분석
+
+    // 특정 기간 이후 생성된 상점 개수
+    @Query("SELECT COUNT(s) FROM Store s WHERE s.createdAt >= : date")
+    long countByCreatedAtAfter(@Param("date") java.time.LocalDateTime date);
+
+    List<Store> findTop10ByOrderByCreatedAtDesc();
+}
