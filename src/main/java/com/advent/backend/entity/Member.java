@@ -47,4 +47,18 @@ public class Member {
         this.nickname = nickname;
         return this; // 메서드 체이닝을 위해 자기 자신 반환
     }
+
+    public void addPoint(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("충전할 포인트는 0보다 커야 합니다.");
+        }
+        this.point += amount;
+    }
+
+    public void decreasePoint(int amount) {
+        if (this.point < amount) {
+            throw new IllegalArgumentException("포인트가 부족합니다. (현재: " + this.point + ")");
+        }
+        this.point -= amount;
+    }
 }

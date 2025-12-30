@@ -4,8 +4,8 @@ spring:
       client:
         registration:
           kakao:
-            client-id: 648f00d2b4cbcc80278f8c7a51ae6647
-            client-secret: znCB51guYUqXiV30HLhiUySbbd1xSoit
+            client-id: ${KAKAO_REST_API_KEY}
+            client-secret: ${KAKAO_SECRET}
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
             redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
@@ -17,10 +17,10 @@ spring:
             user-name-attribute: id
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/tteokgukdb
-    username: teamtteok
-    password: tteokguk
-#    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  #    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
