@@ -31,6 +31,12 @@ public interface StoreRepository extends JpaRepository<Store, String> {
     // 상점 이름으로 부분 검색 (포함 검색)
     List<Store> findByTitleContaining(String keyword);
 
+    // 멤버 이름으로 상점 검색
+    Optional<Store> findByMemberName(String name);
+
+    // 멤버 이름 부분 검색
+    List<Store> findByMemberNameContaining(String keyword);
+
     // 존재 여부 확인
 
     //특정 회원이 상점을 가지고 있는지 확인
