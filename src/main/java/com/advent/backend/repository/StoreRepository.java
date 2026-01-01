@@ -9,9 +9,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface StoreRepository extends JpaRepository<Store, String> {
+public interface StoreRepository extends JpaRepository<Store, UUID> {
 
     //기본 조회
 
@@ -19,11 +20,11 @@ public interface StoreRepository extends JpaRepository<Store, String> {
     Optional<Store> findByMember(Member member);
 
     // 회원 ID로 상점 조회
-    Optional<Store> findByMemberId(String memberId);
+    Optional<Store> findByMemberId(UUID memberId);
 
     // 상점 ID로 조회하면서 회원 정보 함께 가져오기
     @Query("SELECT s FROM Store s LEFT JOIN FETCH s.member WHERE s.id = :storeId")
-    Optional<Store> findByIdWithMember(@Param("storeId") String storeId);
+    Optional<Store> findByIdWithMember(@Param("storeId") UUID storeId);
 
     // 상점 이름으로 검색
     Optional<Store> findByTitle(String title);
@@ -32,10 +33,10 @@ public interface StoreRepository extends JpaRepository<Store, String> {
     List<Store> findByTitleContaining(String keyword);
 
     // 멤버 이름으로 상점 검색
-    Optional<Store> findByMemberName(String name);
+    Optional<Store> findByMemberNickname(String name);
 
     // 멤버 이름 부분 검색
-    List<Store> findByMemberNameContaining(String keyword);
+    List<Store> findByMemberNicknameContaining(String keyword);
 
     // 존재 여부 확인
 
@@ -43,15 +44,15 @@ public interface StoreRepository extends JpaRepository<Store, String> {
     boolean existsByMember(Member member);
 
     // 회원 ID로 상점 존재 여부 확인
-    boolean existsByMemberId(String memberId);
+    boolean existsByMemberId(UUID memberId);
 
     // 상점 ID 회원 ID 일치 확인 (권한 체크)
-    boolean existsByIdAndMemberId(String storeId, String memberId);
+    boolean existsByIdAndMemberId(UUID storeId, UUID memberId);
 
     // 통계 및 분석
 
     // 특정 기간 이후 생성된 상점 개수
-    @Query("SELECT COUNT(s) FROM Store s WHERE s.createdAt >= : date")
+    @Query("SELECT COUNT(s) FROM Store s WHERE s.createdAt >= :date")
     long countByCreatedAtAfter(@Param("date") java.time.LocalDateTime date);
 
     List<Store> findTop10ByOrderByCreatedAtDesc();
