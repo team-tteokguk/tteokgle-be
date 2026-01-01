@@ -1,12 +1,10 @@
 package com.advent.backend.entity;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 // 알림
 @Entity
@@ -26,7 +24,7 @@ public class Alarm extends BaseTimeEntity {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name="receiver_id", nullable = false)
+    @JoinColumn(name = "receiver_id", nullable = false)
     private Member receiver;
 
     @ManyToOne
@@ -40,9 +38,9 @@ public class Alarm extends BaseTimeEntity {
     @Column(name = "target_id")
     private UUID targetId;
 
-    @Column(name="message", length = 500)
+    @Column(name = "message", length = 500)
     private String message;
 
-    @Column(name="is_read")
+    @Column(name = "is_read")
     private boolean isRead = false;
 }

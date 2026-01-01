@@ -2,19 +2,18 @@ package com.advent.backend.repository;
 
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Store;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 @Repository
 public interface StoreRepository extends JpaRepository<Store, UUID> {
 
-    //기본 조회
+    // 기본 조회
 
     // 특정 회원 상점 조회
     Optional<Store> findByMember(Member member);
@@ -40,7 +39,7 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
 
     // 존재 여부 확인
 
-    //특정 회원이 상점을 가지고 있는지 확인
+    // 특정 회원이 상점을 가지고 있는지 확인
     boolean existsByMember(Member member);
 
     // 회원 ID로 상점 존재 여부 확인

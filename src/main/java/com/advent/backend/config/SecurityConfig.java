@@ -10,27 +10,26 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
     public static final String[] ALLOWED_URLS = {
-            "/",
-            "/swagger-ui/**",
-            "/swagger-resources/**",
-            "/v3/api-docs/**",
-            "/api/v1/posts/**",
-            "/api/v1/replies/**",
-            "/login",
-            "/auth/login/kakao/**"
+        "/",
+        "/swagger-ui/**",
+        "/swagger-resources/**",
+        "/v3/api-docs/**",
+        "/api/v1/posts/**",
+        "/api/v1/replies/**",
+        "/login",
+        "/auth/login/kakao/**"
     };
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(ALLOWED_URLS).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/swagger-ui/index.html", true)
-                );
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(ALLOWED_URLS)
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
+                .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/swagger-ui/index.html", true));
 
         return http.build();
     }

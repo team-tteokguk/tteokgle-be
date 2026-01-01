@@ -1,9 +1,8 @@
 package com.advent.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.UUID;
+import lombok.*;
 
 // 사용자
 @Entity

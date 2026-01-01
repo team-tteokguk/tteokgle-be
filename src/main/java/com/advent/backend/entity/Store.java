@@ -3,8 +3,8 @@ package com.advent.backend.entity;
 // 상점
 
 import jakarta.persistence.*;
-import lombok.*;
 import java.util.UUID;
+import lombok.*;
 
 @Entity
 @Table(name = "stores")

@@ -20,7 +20,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        String registrationId = userRequest.getClientRegistration().getRegistrationId(); // service 식별자 이름 ("KAKAO, GOOGLE 등")
+        String registrationId =
+                userRequest
+                        .getClientRegistration()
+                        .getRegistrationId(); // service 식별자 이름 ("KAKAO, GOOGLE 등")
 
         OAuth2UserInfo userInfo = null;
         if (registrationId.equals("kakao")) {
@@ -33,13 +36,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private void saveOrUpdate(OAuth2UserInfo userInfo) {
-        memberRepository.findBySocialTypeAndSocialId(userInfo.getSocialType(), userInfo.getSocialId())
+        memberRepository
+                .findBySocialTypeAndSocialId(userInfo.getSocialType(), userInfo.getSocialId())
                 .map(member -> member.updateNickname(userInfo.getNickname())) // 있으면 업데이트
-                .orElseGet(() -> memberRepository.save(Member.builder() // 없으면 생성
-                        .socialType(userInfo.getSocialType())
-                        .socialId(userInfo.getSocialId())
-                        .nickname(userInfo.getNickname())
-                        .build()));
-
+                .orElseGet(
+                        () ->
+                                memberRepository.save(
+                                        Member.builder() // 없으면 생성
+                                                .socialType(userInfo.getSocialType())
+                                                .socialId(userInfo.getSocialId())
+                                                .nickname(userInfo.getNickname())
+                                                .build()));
     }
 }

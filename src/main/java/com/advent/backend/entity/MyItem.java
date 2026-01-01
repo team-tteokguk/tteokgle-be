@@ -1,11 +1,10 @@
 package com.advent.backend.entity;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 // 나의 고명
 @Entity
@@ -37,10 +36,7 @@ public class MyItem {
     private boolean isUsed = false;
 
     // 나의 고명 x, y, z 위치
-    @Column
-    private Float pos_x;
-    @Column
-    private Float pos_y;
-    @Column
-    private Float pos_z;
+    @Column private Float pos_x;
+    @Column private Float pos_y;
+    @Column private Float pos_z;
 }

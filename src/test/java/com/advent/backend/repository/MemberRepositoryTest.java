@@ -1,25 +1,21 @@
 package com.advent.backend.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.advent.backend.entity.Member;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.annotation.Rollback;
-
-import static org.assertj.core.api.Assertions.as;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class MemberRepositoryTest {
-    @Autowired
-    private MemberRepository memberRepository;
+    @Autowired private MemberRepository memberRepository;
 
     @Test
     @DisplayName("소셜아이디와 소셜타입으로 멤버 조회")
@@ -27,14 +23,12 @@ public class MemberRepositoryTest {
         String socialId = "unique_social_id_123";
         Member.SocialType socialType = Member.SocialType.KAKAO;
 
-        Member member = Member.builder()
-                .socialId(socialId)
-                .socialType(socialType)
-                .nickname("외요3")
-                .build();
+        Member member =
+                Member.builder().socialId(socialId).socialType(socialType).nickname("외요3").build();
 
         memberRepository.save(member);
-        Optional<Member> result = memberRepository.findBySocialTypeAndSocialId(socialType, socialId);
+        Optional<Member> result =
+                memberRepository.findBySocialTypeAndSocialId(socialType, socialId);
 
         assertThat(result.isPresent()).isTrue();
         assertThat(result.get()).isEqualTo(member);
@@ -48,19 +42,21 @@ public class MemberRepositoryTest {
     void should_UpdatePoints_when_PointsTransferredBetweenMembers() {
         Member.SocialType socialType = Member.SocialType.KAKAO;
 
-        Member buyer = Member.builder()
-                .socialId("buyer")
-                .socialType(socialType)
-                .nickname("구매자")
-                .point(1000)
-                .build();
+        Member buyer =
+                Member.builder()
+                        .socialId("buyer")
+                        .socialType(socialType)
+                        .nickname("구매자")
+                        .point(1000)
+                        .build();
 
-        Member seller = Member.builder()
-                .socialId("seller")
-                .socialType(socialType)
-                .nickname("판매자")
-                .point(0)
-                .build();
+        Member seller =
+                Member.builder()
+                        .socialId("seller")
+                        .socialType(socialType)
+                        .nickname("판매자")
+                        .point(0)
+                        .build();
 
         memberRepository.save(buyer);
         memberRepository.save(seller);
@@ -70,7 +66,7 @@ public class MemberRepositoryTest {
 
         int price = 300;
         lockedBuyer.decreasePoint(price); // 1000 -> 700
-        lockedSeller.addPoint(price);     // 0 -> 300
+        lockedSeller.addPoint(price); // 0 -> 300
 
         // 3. Then: 데이터 검증
         assertThat(lockedBuyer.getPoint()).isEqualTo(700);
@@ -79,30 +75,23 @@ public class MemberRepositoryTest {
 
     @Test
     @DisplayName("특정 멤버 포인트 일괄 지급 테스트")
-    void should_UpdatePointsForTargets_when_BatchDistributed(){
+    void should_UpdatePointsForTargets_when_BatchDistributed() {
         String socialId = "unique_social_id_123";
         Member.SocialType socialType = Member.SocialType.KAKAO;
 
-        Member member = Member.builder()
-                .socialId(socialId)
-                .socialType(socialType)
-                .nickname("외요")
-                .build();
+        Member member =
+                Member.builder().socialId(socialId).socialType(socialType).nickname("외요").build();
 
-        Member member2 = Member.builder()
-                .socialId(socialId)
-                .socialType(socialType)
-                .nickname("마루")
-                .build();
+        Member member2 =
+                Member.builder().socialId(socialId).socialType(socialType).nickname("마루").build();
 
         memberRepository.save(member);
         memberRepository.save(member2);
 
-        List<UUID> ids = List.of(member.getId(),member2.getId());
+        List<UUID> ids = List.of(member.getId(), member2.getId());
 
         int updatedCount = memberRepository.addPointToMembers(500, ids);
         assertThat(updatedCount).isEqualTo(2);
-
     }
 
     @Test
@@ -111,17 +100,11 @@ public class MemberRepositoryTest {
         String socialId = "unique_social_id_123";
         Member.SocialType socialType = Member.SocialType.KAKAO;
 
-        Member member = Member.builder()
-                .socialId(socialId)
-                .socialType(socialType)
-                .nickname("외요")
-                .build();
+        Member member =
+                Member.builder().socialId(socialId).socialType(socialType).nickname("외요").build();
 
-        Member member2 = Member.builder()
-                .socialId(socialId)
-                .socialType(socialType)
-                .nickname("마루")
-                .build();
+        Member member2 =
+                Member.builder().socialId(socialId).socialType(socialType).nickname("마루").build();
 
         memberRepository.save(member);
         memberRepository.save(member2);

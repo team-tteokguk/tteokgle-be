@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo "🔍 Pre-commit hook 실행 중..."
+
+echo "📝 코드 포맷팅 중..."
+./gradlew spotlessApply --daemon --quiet
+
+git add -u
+
+echo "✅ Pre-commit 체크 완료!"
+exit 0

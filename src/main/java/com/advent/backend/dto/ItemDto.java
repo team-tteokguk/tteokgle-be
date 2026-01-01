@@ -14,7 +14,7 @@ public class ItemDto {
     @SuperBuilder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static abstract class ItemBase {
+    public abstract static class ItemBase {
         @Schema(description = "고명 ID")
         private String id;
 
@@ -63,7 +63,6 @@ public class ItemDto {
     public static class UnplacedItemResponse extends ItemBase {
         @Schema(description = "컨텐츠 확인 여부")
         private boolean isRead;
-
     }
 
     // 4. [응답] 나의 떡국에서 고명 컨텐츠 조회

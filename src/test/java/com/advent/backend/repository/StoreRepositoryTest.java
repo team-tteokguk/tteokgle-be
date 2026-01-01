@@ -1,7 +1,12 @@
 package com.advent.backend.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Store;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,40 +15,30 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class StoreRepositoryTest {
 
-    @Autowired
-    private StoreRepository storeRepository;
+    @Autowired private StoreRepository storeRepository;
 
-    @Autowired
-    private TestEntityManager em;
+    @Autowired private TestEntityManager em;
 
     private Member savedMember;
     private Store savedStore;
 
     @BeforeEach
     void setUp() {
-        Member member = Member.builder()
-                .socialType(Member.SocialType.GOOGLE)
-                .socialId("unique_social_id_456")
-                .nickname("마루")
-                .point(0)
-                .build();
+        Member member =
+                Member.builder()
+                        .socialType(Member.SocialType.GOOGLE)
+                        .socialId("unique_social_id_456")
+                        .nickname("마루")
+                        .point(0)
+                        .build();
 
         savedMember = em.persist(member);
 
-        Store store = Store.builder()
-                .member(savedMember)
-                .title("마루네 고명집")
-                .build();
+        Store store = Store.builder().member(savedMember).title("마루네 고명집").build();
 
         savedStore = em.persist(store);
 
@@ -138,11 +133,12 @@ public class StoreRepositoryTest {
     @Test
     @DisplayName("상점을 보유하지 않은 회원 ID 조회")
     void should_ReturnEmptyOptional_When_MemberHasNoStore() {
-        Member newMember = Member.builder()
-                .socialId("unique_social_id_789")
-                .socialType(Member.SocialType.KAKAO)
-                .nickname("김외요")
-                .build();
+        Member newMember =
+                Member.builder()
+                        .socialId("unique_social_id_789")
+                        .socialType(Member.SocialType.KAKAO)
+                        .nickname("김외요")
+                        .build();
         em.persist(newMember);
         em.flush();
 
@@ -166,11 +162,12 @@ public class StoreRepositoryTest {
     @Test
     @DisplayName("상점을 보유하지 않은 회원 객체 조회")
     void should_ReturnEmptyOptional_When_MemberObjectHasNoStore() {
-        Member noStoreMember = Member.builder()
-                .socialId("unique_social_id_111")
-                .socialType(Member.SocialType.GOOGLE)
-                .nickname("마루2")
-                .build();
+        Member noStoreMember =
+                Member.builder()
+                        .socialId("unique_social_id_111")
+                        .socialType(Member.SocialType.GOOGLE)
+                        .nickname("마루2")
+                        .build();
         em.persist(noStoreMember);
         em.flush();
 
@@ -217,30 +214,26 @@ public class StoreRepositoryTest {
     @DisplayName("포함된 키워드로 검색")
     void should_ReturnMatchingStores_When_KeywordExists() {
 
-        Member member2 = Member.builder()
-                .nickname("주인2")
-                .socialId("social_user_2")
-                .socialType(Member.SocialType.GOOGLE)
-                .build();
+        Member member2 =
+                Member.builder()
+                        .nickname("주인2")
+                        .socialId("social_user_2")
+                        .socialType(Member.SocialType.GOOGLE)
+                        .build();
         em.persist(member2);
 
-        Store store2 = Store.builder()
-                .member(member2)
-                .title("마루 고명집2")
-                .build();
+        Store store2 = Store.builder().member(member2).title("마루 고명집2").build();
         em.persist(store2);
 
-        Member member3 = Member.builder()
-                .nickname("주인3")
-                .socialId("social_user_3")
-                .socialType(Member.SocialType.GOOGLE)
-                .build();
+        Member member3 =
+                Member.builder()
+                        .nickname("주인3")
+                        .socialId("social_user_3")
+                        .socialType(Member.SocialType.GOOGLE)
+                        .build();
         em.persist(member3);
 
-        Store store3 = Store.builder()
-                .member(member3)
-                .title("마루 고명집3")
-                .build();
+        Store store3 = Store.builder().member(member3).title("마루 고명집3").build();
         em.persist(store3);
 
         em.flush();
@@ -279,20 +272,24 @@ public class StoreRepositoryTest {
     void should_ReturnMultipleStores_When_MultipleMatches() {
         // [수정] 각각 다른 회원을 만들어 연결
 
-        Member member1 = Member.builder().nickname("외요1").socialId("oeyo1").socialType(Member.SocialType.KAKAO).build();
+        Member member1 =
+                Member.builder()
+                        .nickname("외요1")
+                        .socialId("oeyo1")
+                        .socialType(Member.SocialType.KAKAO)
+                        .build();
         em.persist(member1);
-        Store store2 = Store.builder()
-                .member(member1)
-                .title("외요네 가게")
-                .build();
+        Store store2 = Store.builder().member(member1).title("외요네 가게").build();
         em.persist(store2);
 
-        Member member2 = Member.builder().nickname("외요2").socialId("oeyo2").socialType(Member.SocialType.KAKAO).build();
+        Member member2 =
+                Member.builder()
+                        .nickname("외요2")
+                        .socialId("oeyo2")
+                        .socialType(Member.SocialType.KAKAO)
+                        .build();
         em.persist(member2);
-        Store store3 = Store.builder()
-                .member(member2)
-                .title("외요네 상점")
-                .build();
+        Store store3 = Store.builder().member(member2).title("외요네 상점").build();
         em.persist(store3);
 
         em.flush();
@@ -315,11 +312,12 @@ public class StoreRepositoryTest {
     @Test
     @DisplayName("상점 미보유 회원")
     void should_ReturnFalse_When_MemberHasNoStore() {
-        Member newMember = Member.builder()
-                .socialId("unique_social_id_777")
-                .socialType(Member.SocialType.GOOGLE)
-                .nickname("예지")
-                .build();
+        Member newMember =
+                Member.builder()
+                        .socialId("unique_social_id_777")
+                        .socialType(Member.SocialType.GOOGLE)
+                        .nickname("예지")
+                        .build();
         em.persist(newMember);
         em.flush();
 
@@ -340,11 +338,12 @@ public class StoreRepositoryTest {
     @Test
     @DisplayName("상점을 보유하지 않은 회원")
     void should_ReturnFalse_When_MemberIdHasNoStore() {
-        Member newMember = Member.builder()
-                .socialId("social_666")
-                .socialType(Member.SocialType.KAKAO)
-                .nickname("외요마루")
-                .build();
+        Member newMember =
+                Member.builder()
+                        .socialId("social_666")
+                        .socialType(Member.SocialType.KAKAO)
+                        .nickname("외요마루")
+                        .build();
         em.persist(newMember);
         em.flush();
 
@@ -391,17 +390,15 @@ public class StoreRepositoryTest {
     @DisplayName("TOP 10 상점 조회 초과 상황")
     void should_Return10Stores_When_15StoresExist() {
         for (int i = 1; i <= 15; i++) {
-            Member newMember = Member.builder()
-                    .nickname("주인" + i)
-                    .socialId("bulk_social_" + i)
-                    .socialType(Member.SocialType.GOOGLE)
-                    .build();
+            Member newMember =
+                    Member.builder()
+                            .nickname("주인" + i)
+                            .socialId("bulk_social_" + i)
+                            .socialType(Member.SocialType.GOOGLE)
+                            .build();
             em.persist(newMember);
 
-            Store store = Store.builder()
-                    .member(newMember)
-                    .title("가게" + i)
-                    .build();
+            Store store = Store.builder().member(newMember).title("가게" + i).build();
             em.persist(store);
         }
         em.flush();
@@ -414,18 +411,16 @@ public class StoreRepositoryTest {
     @Test
     @DisplayName("TOP10 상점 조회 미달 상황")
     void should_Return5Stores_When_Only5StoresExist() {
-        for(int i = 1; i <= 4; i++) {
-            Member newMember = Member.builder()
-                    .nickname("소규모주인" + i)
-                    .socialId("small_social_" + i)
-                    .socialType(Member.SocialType.GOOGLE)
-                    .build();
+        for (int i = 1; i <= 4; i++) {
+            Member newMember =
+                    Member.builder()
+                            .nickname("소규모주인" + i)
+                            .socialId("small_social_" + i)
+                            .socialType(Member.SocialType.GOOGLE)
+                            .build();
             em.persist(newMember);
 
-            Store store = Store.builder()
-                    .member(newMember)
-                    .title("가게" + i)
-                    .build();
+            Store store = Store.builder().member(newMember).title("가게" + i).build();
             em.persist(store);
         }
         em.flush();
@@ -441,13 +436,15 @@ public class StoreRepositoryTest {
         storeRepository.deleteAll();
         em.flush();
 
-        Member member1 = Member.builder().nickname("테스터1").socialId("tester1").socialType(Member.SocialType.GOOGLE).build();
+        Member member1 =
+                Member.builder()
+                        .nickname("테스터1")
+                        .socialId("tester1")
+                        .socialType(Member.SocialType.GOOGLE)
+                        .build();
         em.persist(member1);
 
-        Store oldStore = Store.builder()
-                .member(member1)
-                .title("오래된 가게")
-                .build();
+        Store oldStore = Store.builder().member(member1).title("오래된 가게").build();
         em.persist(oldStore);
         em.flush();
 
@@ -457,13 +454,15 @@ public class StoreRepositoryTest {
             e.printStackTrace();
         }
 
-        Member member2 = Member.builder().nickname("테스터2").socialId("tester2").socialType(Member.SocialType.GOOGLE).build();
+        Member member2 =
+                Member.builder()
+                        .nickname("테스터2")
+                        .socialId("tester2")
+                        .socialType(Member.SocialType.GOOGLE)
+                        .build();
         em.persist(member2);
 
-        Store newStore = Store.builder()
-                .member(member2)
-                .title("새로운 가게")
-                .build();
+        Store newStore = Store.builder().member(member2).title("새로운 가게").build();
         em.persist(newStore);
         em.flush();
 
@@ -491,11 +490,12 @@ public class StoreRepositoryTest {
     @DisplayName("상점 생성 > 삭제 > 재생성 흐름")
     void should_WorkCorrectly_When_CreateDeleteAndRecreateStore() {
 
-        Member newMember = Member.builder()
-                .socialId("userScenario")
-                .socialType(Member.SocialType.GOOGLE)
-                .nickname("왹저")
-                .build();
+        Member newMember =
+                Member.builder()
+                        .socialId("userScenario")
+                        .socialType(Member.SocialType.GOOGLE)
+                        .nickname("왹저")
+                        .build();
         em.persist(newMember);
         em.flush();
 
@@ -503,10 +503,7 @@ public class StoreRepositoryTest {
 
         assertThat(storeRepository.existsByMemberId(memberId)).isFalse();
 
-        Store store1 = Store.builder()
-                .member(newMember)
-                .title("시나리오 가게 1")
-                .build();
+        Store store1 = Store.builder().member(newMember).title("시나리오 가게 1").build();
         storeRepository.save(store1);
 
         assertThat(storeRepository.existsByMemberId(memberId)).isTrue();
@@ -521,10 +518,7 @@ public class StoreRepositoryTest {
 
         assertThat(storeRepository.existsByMemberId(memberId)).isFalse();
 
-        Store store2 = Store.builder()
-                .member(newMember)
-                .title("시나리오 가게 2")
-                .build();
+        Store store2 = Store.builder().member(newMember).title("시나리오 가게 2").build();
         storeRepository.save(store2);
 
         assertThat(storeRepository.existsByMemberId(memberId)).isTrue();
@@ -537,30 +531,26 @@ public class StoreRepositoryTest {
     @DisplayName("데이터 무결성")
     void should_MaintainDataIntegrity_When_MultipleConcurrentOperations() {
 
-        Member member1 = Member.builder()
-                .socialId("concurrent1")
-                .socialType(Member.SocialType.KAKAO)
-                .nickname("동시1")
-                .build();
+        Member member1 =
+                Member.builder()
+                        .socialId("concurrent1")
+                        .socialType(Member.SocialType.KAKAO)
+                        .nickname("동시1")
+                        .build();
         em.persist(member1);
 
-        Member member2 = Member.builder()
-                .socialId("concurrent2")
-                .socialType(Member.SocialType.KAKAO)
-                .nickname("동시2")
-                .build();
+        Member member2 =
+                Member.builder()
+                        .socialId("concurrent2")
+                        .socialType(Member.SocialType.KAKAO)
+                        .nickname("동시2")
+                        .build();
         em.persist(member2);
 
-        Store store1 = Store.builder()
-                .member(member1)
-                .title("동시 가게 1")
-                .build();
+        Store store1 = Store.builder().member(member1).title("동시 가게 1").build();
         em.persist(store1);
 
-        Store store2 = Store.builder()
-                .member(member2)
-                .title("동시 가게 2")
-                .build();
+        Store store2 = Store.builder().member(member2).title("동시 가게 2").build();
         em.persist(store2);
         em.flush();
 

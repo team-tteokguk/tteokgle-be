@@ -1,12 +1,10 @@
 package com.advent.backend.entity;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 // 금전 기록
 @Entity
@@ -44,5 +42,4 @@ public class PointHistory extends BaseTimeEntity {
 
     @Column(name = "amount", nullable = false)
     private Integer amount;
-
 }
