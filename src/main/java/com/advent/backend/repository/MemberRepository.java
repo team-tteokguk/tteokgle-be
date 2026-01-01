@@ -25,14 +25,14 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
     Optional<Member> findByIdWithLock(@Param("id") UUID id);
 
     // 특정 멤버들 포인트 업데이트
-    @Modifying(clearAutomatically = true)
     @Transactional
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Member m SET m.point = m.point + :amount")
     int addPointToMembers(@Param("amount") int amount, @Param("ids") List<UUID> ids);
 
     // 모든 멤버 포인트 업데이트
-    @Modifying(clearAutomatically = true)
     @Transactional
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Member m SET m.point = m.point + :amount")
     int addPointToAllMemebers(@Param("amount") int amount);
 }
