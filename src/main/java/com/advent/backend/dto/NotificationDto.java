@@ -1,11 +1,10 @@
 package com.advent.backend.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
 
 public class NotificationDto {
     // [응답] 알림 조회

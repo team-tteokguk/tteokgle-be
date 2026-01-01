@@ -1,9 +1,8 @@
 package com.advent.backend.security;
 
 import com.advent.backend.entity.Member;
-import lombok.AllArgsConstructor;
-
 import java.util.Map;
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class KakaoUserDetails implements OAuth2UserInfo {

@@ -1,11 +1,10 @@
 package com.advent.backend.entity;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 // 구독
 @Entity
@@ -29,6 +28,6 @@ public class Subscription extends BaseTimeEntity {
     private Member member;
 
     // 알림 수신 여부 (팝업)
-    @Column(columnDefinition = "boolean default false",nullable = false)
+    @Column(columnDefinition = "boolean default false", nullable = false)
     private boolean isNotificated = false;
 }

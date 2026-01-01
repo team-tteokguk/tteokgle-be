@@ -1,12 +1,10 @@
 package com.advent.backend.entity;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.UUID;
 
 // 공유 링크
 @Entity

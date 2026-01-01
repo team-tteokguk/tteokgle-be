@@ -3,19 +3,21 @@ package com.advent.backend.entity;
 // 상점
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import java.util.UUID;
+import lombok.*;
 
 @Entity
 @Table(name = "stores")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Store extends BaseTimeEntity {
     // pk (상점 ID)
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @Column(columnDefinition = "uuid")
+    private UUID id;
 
     // fk (상점 주인 ID)
     @OneToOne(fetch = FetchType.LAZY)

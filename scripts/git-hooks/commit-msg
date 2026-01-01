@@ -1,0 +1,22 @@
+#!/bin/sh
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# 현재 브랜치명 가져오기
+BRANCH_NAME=$(git symbolic-ref --short HEAD)
+
+# 브랜치명에서 숫자 추출 (예: feature/123-add-login -> 123)
+ISSUE_NUMBER=$(echo "$BRANCH_NAME" | grep -o '[0-9]\+' | head -1)
+
+# 이미 (#숫자) 형식이 있는지 체크
+if echo "$COMMIT_MSG" | grep -qE '\(#[0-9]+\)'; then
+    exit 0
+fi
+
+# 숫자가 있으면 커밋 메시지에 추가
+if [ -n "$ISSUE_NUMBER" ]; then
+    echo "$COMMIT_MSG (#$ISSUE_NUMBER)" > "$COMMIT_MSG_FILE"
+fi
+
+exit 0
