@@ -1,9 +1,8 @@
 package com.advent.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.UUID;
+import lombok.*;
 
 // 알림
 @Entity
@@ -15,10 +14,10 @@ import java.util.UUID;
 public class Notification extends BaseTimeEntity {
 
     public enum NotificationType {
-        COMMENT,    // 방명록 알림
-        SALE,   // 판매 알림
-        SUBSCRIBE,  // 구독 알림
-        ALARM   // 전체 공지
+        COMMENT, // 방명록 알림
+        SALE, // 판매 알림
+        SUBSCRIBE, // 구독 알림
+        ALARM // 전체 공지
     }
 
     @Id
@@ -26,7 +25,7 @@ public class Notification extends BaseTimeEntity {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name="member_id", nullable = false)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Enumerated(EnumType.STRING)
@@ -36,10 +35,10 @@ public class Notification extends BaseTimeEntity {
     @Column(name = "link")
     private String link;
 
-    @Column(name="message", length = 500)
+    @Column(name = "message", length = 500)
     private String message;
 
-    @Column(name="is_read", nullable = false)
+    @Column(name = "is_read", nullable = false)
     @Builder.Default
     private boolean isRead = false;
 }
