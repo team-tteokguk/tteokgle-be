@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.12'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = 'com.advent'
@@ -22,11 +23,12 @@ configurations {
 
 repositories {
 	mavenCentral()
+	gradlePluginPortal()
 }
 
 dependencies {
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0' // swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0' // swagger
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
@@ -35,6 +37,49 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+spotless {
+	java {
+		target 'src/**/*.java', 'test/**/*.java'
+
+		importOrder('java|javax', 'com.advent', '', '\\#')
+
+		removeUnusedImports()
+
+		googleJavaFormat().aosp()
+	}
+}
+
+tasks.register('installGitHooks', Copy) {
+	description = 'Git hooks 스크립트를 .git/hooks 디렉토리에 복사'
+	from new File(rootProject.rootDir, 'scripts/git-hooks')
+	into new File(rootProject.rootDir, '.git/hooks')
+
+	fileMode 0755
+
+	doLast {
+		println '✅ Git hooks가 성공적으로 설치되었습니다!'
+	}
+}
+
+build.dependsOn installGitHooks
+
+tasks.register('fmt') {
+	group = 'verification'
+	dependsOn 'spotlessApply'
+	doLast {
+		println '✨ [Success] 전체 코드 포맷팅이 완료되었습니다.'
+	}
+}
+
+tasks.register('preCommit') {
+	group = 'verification'
+	dependsOn 'spotlessApply'
+	dependsOn 'test'
+	doLast {
+		println '🚀 [Success] 테스트와 포맷팅 검사가 통과되었습니다. 커밋 가능!'
+	}
 }
 
 tasks.named('test') {

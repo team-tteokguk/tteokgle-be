@@ -12,7 +12,7 @@ public class ItemDto {
     @SuperBuilder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static abstract class ItemBase {
+    public abstract static class ItemBase {
         @Schema(description = "고명 ID")
         private String id;
 
@@ -44,32 +44,32 @@ public class ItemDto {
         private int sellCounts;
     }
 
-//    // 2. [응답] 나의 떡국용 배치된 고명 정보 조회
-//    @Getter
-//    @SuperBuilder
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-//    public static class PlacedItemResponse extends ItemBase {
-//
-//    }
-//
-//    // 3. [응답] 나의 떡국용 미배치된 고명 정보 조회
-//    @Getter
-//    @SuperBuilder
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-//    public static class NoPlacedItemResponse extends ItemBase {
-//
-//    }
-//
-//    // 4. [응답] 나의 떡국에서 고명 컨텐츠 조회
-//    @Getter
-//    @SuperBuilder
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-//    public static class ItemContentResponse extends ItemBase {
-//
-//    }
+    //    // 2. [응답] 나의 떡국용 배치된 고명 정보 조회
+    //    @Getter
+    //    @SuperBuilder
+    //    @NoArgsConstructor
+    //    @AllArgsConstructor
+    //    public static class PlacedItemResponse extends ItemBase {
+    //
+    //    }
+    //
+    //    // 3. [응답] 나의 떡국용 미배치된 고명 정보 조회
+    //    @Getter
+    //    @SuperBuilder
+    //    @NoArgsConstructor
+    //    @AllArgsConstructor
+    //    public static class NoPlacedItemResponse extends ItemBase {
+    //
+    //    }
+    //
+    //    // 4. [응답] 나의 떡국에서 고명 컨텐츠 조회
+    //    @Getter
+    //    @SuperBuilder
+    //    @NoArgsConstructor
+    //    @AllArgsConstructor
+    //    public static class ItemContentResponse extends ItemBase {
+    //
+    //    }
 
     // REQUEST
     // 1. [요청] 고명 정보 등록용
