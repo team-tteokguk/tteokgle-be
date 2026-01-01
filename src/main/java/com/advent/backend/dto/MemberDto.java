@@ -17,7 +17,7 @@ public class MemberDto {
         @Schema(description = "이메일")
         private String email;
 
-        @Schema (description = "소셜 타입 (KAKAO, GOOGLE)")
+        @Schema(description = "소셜 타입 (KAKAO, GOOGLE)")
         private String socialType;
 
         @Schema(description = "닉네임")

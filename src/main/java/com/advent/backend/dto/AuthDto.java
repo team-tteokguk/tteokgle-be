@@ -2,7 +2,7 @@ package com.advent.backend.dto;
 
 import com.advent.backend.enums.SocialProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.* ;
+import lombok.*;
 
 public class AuthDto {
 
