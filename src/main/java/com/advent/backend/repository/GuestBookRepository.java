@@ -18,7 +18,7 @@ public interface GuestBookRepository extends JpaRepository<GuestBook, UUID> {
     Page<GuestBook> findAllByStoreIdWithMember(@Param("storeId") UUID storeId, Pageable pageable);
 
     @Query("SELECT g FROM GuestBook g JOIN FETCH g.member WHERE g.id = :guestBookId")
-    Optional<GuestBook> findByIdWithMember(@Param("guestbookId") UUID guestbookId);
+    Optional<GuestBook> findByIdWithMember(@Param("guestBookId") UUID guestbookId);
 
     boolean existsByIdAndMemberId(UUID id, UUID memberId);
 }
