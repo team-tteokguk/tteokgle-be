@@ -277,8 +277,6 @@ public class StoreRepositoryTest {
     @Test
     @DisplayName("여러 상점 매칭")
     void should_ReturnMultipleStores_When_MultipleMatches() {
-        // [수정] 각각 다른 회원을 만들어 연결
-
         Member member1 = Member.builder().nickname("외요1").socialId("oeyo1").socialType(Member.SocialType.KAKAO).build();
         em.persist(member1);
         Store store2 = Store.builder()
@@ -486,6 +484,140 @@ public class StoreRepositoryTest {
     }
 
     // 통합 테스트
+
+    // findByMemberNickname 테스트
+
+    @Test
+    @DisplayName("회원 닉네임으로 상점 조회 존재하는 경우")
+    void should_ReturnStore_When_MemberNicknameExists() {
+        Optional<Store> result = storeRepository.findByMemberNickname("마루");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(savedStore.getId());
+        assertThat(result.get().getTitle()).isEqualTo("마루네 고명집");
+        assertThat(result.get().getMember().getNickname()).isEqualTo("마루");
+    }
+
+    @Test
+    @DisplayName("회원 닉네임으로 상점 조회 존재하지 않는 경우")
+    void should_ReturnEmptyOptional_When_MemberNicknameNotExists() {
+        Optional<Store> result = storeRepository.findByMemberNickname("존재하지않는닉네임");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("회원 닉네임이 Null 일 때")
+    void should_ReturnEmptyOptional_When_MemberNicknameIsNull() {
+        Optional<Store> result = storeRepository.findByMemberNickname(null);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("상점이 없는 회원 닉네임으로 조회")
+    void should_ReturnEmptyOptional_When_MemberHasNoStoreByNickname() {
+        Member noStoreMember = Member.builder()
+                .socialId("no_store_user")
+                .socialType(Member.SocialType.KAKAO)
+                .nickname("상점없음")
+                .build();
+        em.persist(noStoreMember);
+        em.flush();
+
+        Optional<Store> result = storeRepository.findByMemberNickname("상점없음");
+        assertThat(result).isEmpty();
+    }
+
+    // findByMemberNicknameContaining 테스트
+
+    @Test
+    @DisplayName("회원 닉네임 포함 검색 - 단일 결과")
+    void should_ReturnMatchingStores_When_NicknameContainsKeyword() {
+        List<Store> results = storeRepository.findByMemberNicknameContaining("마루");
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getMember().getNickname()).isEqualTo("마루");
+        assertThat(results.get(0).getTitle()).isEqualTo("마루네 고명집");
+    }
+
+    @Test
+    @DisplayName("회원 닉네임 포함 검색 - 복수 결과")
+    void should_ReturnMultipleStores_When_MultipleNicknamesMatch() {
+        Member member1 = Member.builder()
+                .nickname("김철수")
+                .socialId("kim1")
+                .socialType(Member.SocialType.GOOGLE)
+                .build();
+        em.persist(member1);
+
+        Store store1 = Store.builder()
+                .member(member1)
+                .title("김철수네 가게")
+                .build();
+        em.persist(store1);
+
+        Member member2 = Member.builder()
+                .nickname("김영희")
+                .socialId("kim2")
+                .socialType(Member.SocialType.KAKAO)
+                .build();
+        em.persist(member2);
+
+        Store store2 = Store.builder()
+                .member(member2)
+                .title("김영희네 상점")
+                .build();
+        em.persist(store2);
+
+        em.flush();
+
+        List<Store> results = storeRepository.findByMemberNicknameContaining("김");
+
+        assertThat(results).hasSize(2);
+        assertThat(results)
+                .extracting(store -> store.getMember().getNickname())
+                .containsExactlyInAnyOrder("김철수", "김영희");
+    }
+
+    @Test
+    @DisplayName("회원 닉네임 포함 검색 - 일치하는 결과 없음")
+    void should_ReturnEmptyList_When_NoNicknameMatches() {
+        List<Store> results = storeRepository.findByMemberNicknameContaining("없는닉네임");
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    @DisplayName("회원 닉네임 검색 키워드가 Null일 때")
+    void should_ReturnEmptyList_When_NicknameKeywordIsNull() {
+        List<Store> results = storeRepository.findByMemberNicknameContaining(null);
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    @DisplayName("회원 닉네임 검색 키워드가 빈 문자열일 때")
+    void should_ReturnAllStores_When_NicknameKeywordIsEmpty() {
+        List<Store> results = storeRepository.findByMemberNicknameContaining("");
+        assertThat(results).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("상점이 없는 회원은 검색 결과에 포함되지 않음")
+    void should_NotReturnMembersWithoutStores_When_SearchingByNickname() {
+        Member noStoreMember = Member.builder()
+                .socialId("no_store_test")
+                .socialType(Member.SocialType.GOOGLE)
+                .nickname("마루마루")
+                .build();
+        em.persist(noStoreMember);
+        em.flush();
+
+        List<Store> results = storeRepository.findByMemberNicknameContaining("마루");
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getMember().getNickname()).isEqualTo("마루");
+    }
+
+
+    // findByMemberNicknameContaining 테스트
 
     @Test
     @DisplayName("상점 생성 > 삭제 > 재생성 흐름")
