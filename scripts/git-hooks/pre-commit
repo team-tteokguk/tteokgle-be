@@ -9,11 +9,17 @@ if [ -z "$STAGED_JAVA_FILES" ]; then
     exit 0
 fi
 
-echo "📝 스테이징된 파일 포맷팅 중: $STAGED_JAVA_FILES"
+echo "📝 스테이징된 파일 포맷팅 중..."
 
+# 전체 프로젝트 포맷팅
 ./gradlew spotlessApply --daemon --quiet
 
-echo "$STAGED_JAVA_FILES" | xargs git add
+# 원래 스테이징했던 파일들만 다시 스테이징
+for file in $STAGED_JAVA_FILES; do
+    if [ -f "$file" ]; then
+        git add "$file"
+    fi
+done
 
 echo "✅ Pre-commit 체크 완료!"
 exit 0
