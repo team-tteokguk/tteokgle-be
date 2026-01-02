@@ -2,15 +2,15 @@ package com.advent.backend.entity;
 
 import jakarta.persistence.*;
 import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 // 금전 기록
 @Entity
 @Table(name = "point-history-tbl")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class PointHistory extends BaseTimeEntity {
 
     public enum TradeType {
@@ -34,7 +34,7 @@ public class PointHistory extends BaseTimeEntity {
 
     @ManyToOne
     @JoinColumn(name = "item_id")
-    private Store item;
+    private Item item;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trade_type", nullable = false)

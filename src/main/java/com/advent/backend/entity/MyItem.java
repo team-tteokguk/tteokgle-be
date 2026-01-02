@@ -2,20 +2,25 @@ package com.advent.backend.entity;
 
 import jakarta.persistence.*;
 import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 // 나의 고명
 @Entity
 @Table(name = "my_items")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class MyItem {
     // 내 고명 ID
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    // 나의 고명의 주인
+    @ManyToOne
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     // 떡국 ID
     @ManyToOne
