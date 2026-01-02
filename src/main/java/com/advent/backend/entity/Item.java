@@ -5,6 +5,8 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 // 고명
 @Entity
@@ -48,6 +50,7 @@ public class Item extends BaseTimeEntity {
 
     // 컨텐츠 내용 (이미지 및 유튜브 링크)
     @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String contentData;
 
     // 본문
