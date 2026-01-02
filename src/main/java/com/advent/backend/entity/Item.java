@@ -57,4 +57,24 @@ public class Item extends BaseTimeEntity {
     // 판매 상태
     @Column(columnDefinition = "boolean default true", nullable = false)
     private boolean isAvailable = true;
+
+    public static Item register(
+            Store store, String imageUrl, Integer cost, ContentType contentType, String content) {
+        Item item = new Item();
+        item.store = store;
+        item.imageUrl = imageUrl;
+        item.cost = cost;
+        item.contentType = contentType;
+        item.content = content;
+
+        item.count = 0;
+        item.isAvailable = true;
+        item.contentData = null;
+
+        return item;
+    }
+
+    public void addCount(int quantity) {
+        this.count += quantity;
+    }
 }
