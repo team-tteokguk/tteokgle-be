@@ -1,0 +1,26 @@
+package com.advent.backend.common.error;
+
+import lombok.Getter;
+
+/*
+   HTTP 상태 코드 및 서비스 자체 에러 코드를 정의합니다.
+*/
+
+@Getter
+public enum ErrorCode {
+    // 공통 에러
+    INVALID_INPUT_VALUE(400, "C001", "올바르지 않은 입력값입니다."),
+    METHOD_NOT_ALLOWED(405, "C002", "허용되지 않은 메소드입니다."),
+    ENTITY_NOT_FOUND(400, "C003", "데이터를 찾을 수 없습니다."),
+    INTERNAL_SERVER_ERROR(500, "C004", "서버 내부에 오류가 발생했습니다.");
+
+    private final String code;
+    private final String message;
+    private final int status;
+
+    ErrorCode(int status, String code, String message) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+    }
+}
