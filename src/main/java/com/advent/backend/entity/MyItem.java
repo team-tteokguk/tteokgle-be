@@ -48,4 +48,11 @@ public class MyItem {
         myItem.isRead = false;
         return myItem;
     }
+
+    public void place(Float x, Float y, Float z) {
+        this.pos_x = x;
+        this.pos_y = y;
+        this.pos_z = z;
+        this.isUsed = true;
+    }
 }
