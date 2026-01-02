@@ -12,4 +12,5 @@ public class PointService {
     private final MemberRepository memberRepository;
     private final NotificationRepository notificationRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    
 }

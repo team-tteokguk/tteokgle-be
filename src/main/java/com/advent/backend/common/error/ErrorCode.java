@@ -12,7 +12,15 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE(400, "C001", "올바르지 않은 입력값입니다."),
     METHOD_NOT_ALLOWED(405, "C002", "허용되지 않은 메소드입니다."),
     ENTITY_NOT_FOUND(400, "C003", "데이터를 찾을 수 없습니다."),
-    INTERNAL_SERVER_ERROR(500, "C004", "서버 내부에 오류가 발생했습니다.");
+    INTERNAL_SERVER_ERROR(500, "C004", "서버 내부에 오류가 발생했습니다."),
+
+    // 금전 거래 에러
+    INSUFFICIENT_BALANCE(400, "P001", "포인트 잔액이 부족합니다."),
+    SELF_TRANSFER_NOT_ALLOWED(400, "P002", "자기 자신에게 송금할 수 없습니다."),
+
+    // 사용자 유효성
+    MEMBER_NOT_FOUND(404, "M001", "존재하지 않는 사용자입니다."),
+
 
     private final String code;
     private final String message;
