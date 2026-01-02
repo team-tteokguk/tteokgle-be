@@ -21,4 +21,10 @@ public class MyTteok {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private Member member;
+
+    public static MyTteok create(Member member) {
+        MyTteok tteok = new MyTteok();
+        tteok.member = member;
+        return tteok;
+    }
 }

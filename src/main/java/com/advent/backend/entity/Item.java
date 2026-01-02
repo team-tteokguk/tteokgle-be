@@ -5,6 +5,8 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 // 고명
 @Entity
@@ -48,6 +50,7 @@ public class Item extends BaseTimeEntity {
 
     // 컨텐츠 내용 (이미지 및 유튜브 링크)
     @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String contentData;
 
     // 본문
@@ -57,4 +60,24 @@ public class Item extends BaseTimeEntity {
     // 판매 상태
     @Column(columnDefinition = "boolean default true", nullable = false)
     private boolean isAvailable = true;
+
+    public static Item register(
+            Store store, String imageUrl, Integer cost, ContentType contentType, String content) {
+        Item item = new Item();
+        item.store = store;
+        item.imageUrl = imageUrl;
+        item.cost = cost;
+        item.contentType = contentType;
+        item.content = content;
+
+        item.count = 0;
+        item.isAvailable = true;
+        item.contentData = null;
+
+        return item;
+    }
+
+    public void addCount(int quantity) {
+        this.count += quantity;
+    }
 }

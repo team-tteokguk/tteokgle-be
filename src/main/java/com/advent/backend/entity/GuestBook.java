@@ -22,6 +22,18 @@ public class GuestBook extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private Member member;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    private Store store;
+
     @Column(nullable = false, length = 200)
     private String content;
+
+    public static GuestBook write(Member member, Store store, String content) {
+        GuestBook guestBook = new GuestBook();
+        guestBook.member = member;
+        guestBook.store = store;
+        guestBook.content = content;
+        return guestBook;
+    }
 }
