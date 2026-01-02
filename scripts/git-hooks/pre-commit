@@ -2,10 +2,18 @@
 
 echo "🔍 Pre-commit hook 실행 중..."
 
-echo "📝 코드 포맷팅 중..."
+STAGED_JAVA_FILES=$(git diff --name-only --cached --diff-filter=ACMR | grep ".*\.java$")
+
+if [ -z "$STAGED_JAVA_FILES" ]; then
+    echo "✨ 변경된 Java 파일이 없습니다. 포맷팅을 건너뜁니다."
+    exit 0
+fi
+
+echo "📝 스테이징된 파일 포맷팅 중: $STAGED_JAVA_FILES"
+
 ./gradlew spotlessApply --daemon --quiet
 
-git add -u
+echo "$STAGED_JAVA_FILES" | xargs git add
 
 echo "✅ Pre-commit 체크 완료!"
 exit 0
