@@ -69,7 +69,7 @@ public class MyItemRepositoryTest {
         em.flush();
         em.clear();
 
-        List<MyItem> result = myItemRepository.findAllByTteok_IdAndIsUsed(myTteok.getId(), false);
+        List<MyItem> result = myItemRepository.findAllByTteokIdAndIsUsed(myTteok.getId(), false);
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting("isUsed").containsOnly(false);
@@ -88,7 +88,7 @@ public class MyItemRepositoryTest {
         em.flush();
         em.clear();
 
-        List<MyItem> result = myItemRepository.findAllByTteok_IdAndIsUsed(myTteok.getId(), true);
+        List<MyItem> result = myItemRepository.findAllByTteokIdAndIsUsed(myTteok.getId(), true);
 
         assertThat(result).hasSize(1);
 
@@ -121,7 +121,7 @@ public class MyItemRepositoryTest {
         em.flush();
         em.clear();
 
-        List<MyItem> result = myItemRepository.findAllByTteok_IdAndIsUsed(myTteok.getId(), false);
+        List<MyItem> result = myItemRepository.findAllByTteokIdAndIsUsed(myTteok.getId(), false);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTteok().getId()).isEqualTo(myTteok.getId());

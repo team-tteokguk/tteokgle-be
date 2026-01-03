@@ -6,5 +6,5 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MyTteokRepository extends JpaRepository<MyTteok, UUID> {
-    Optional<MyTteok> findByMember_Id(UUID memberId);
+    Optional<MyTteok> findByMemberId(UUID memberId);
 }

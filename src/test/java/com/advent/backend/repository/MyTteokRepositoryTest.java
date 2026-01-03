@@ -37,7 +37,7 @@ public class MyTteokRepositoryTest {
         em.flush();
         em.clear();
 
-        Optional<MyTteok> result = myTteokRepository.findByMember_Id(member.getId());
+        Optional<MyTteok> result = myTteokRepository.findByMemberId(member.getId());
 
         assertThat(result).isPresent();
         assertThat(result.get().getMember().getNickname()).isEqualTo("마루88");
@@ -57,7 +57,7 @@ public class MyTteokRepositoryTest {
         em.flush();
         em.clear();
 
-        Optional<MyTteok> result = myTteokRepository.findByMember_Id(newMember.getId());
+        Optional<MyTteok> result = myTteokRepository.findByMemberId(newMember.getId());
 
         assertThat(result).isEmpty();
     }
