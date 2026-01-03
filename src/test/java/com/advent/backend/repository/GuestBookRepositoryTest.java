@@ -53,7 +53,7 @@ class GuestBookRepositoryTest {
 
     @Test
     @DisplayName("상점 객체로 방명록 조회")
-    void findAllByStore_Success() {
+    void should_ReturnGuestBookPage_When_StoreObjectProvided() {
         GuestBook g1 = GuestBook.write(savedMember, savedStore, "추가 글 1");
         GuestBook g2 = GuestBook.write(savedMember, savedStore, "추가 글 2");
         em.persist(g1);
@@ -72,7 +72,7 @@ class GuestBookRepositoryTest {
 
     @Test
     @DisplayName("상점 ID로 방명록 조회")
-    void findAllByStoreIdWithMember_Success() {
+    void should_ReturnGuestBooksWithMember_When_StoreIdExists() {
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<GuestBook> result =
@@ -90,7 +90,7 @@ class GuestBookRepositoryTest {
 
     @Test
     @DisplayName("방명록 상세 조회")
-    void findByIdWithMember_Success() {
+    void should_ReturnGuestBookWithMember_When_GuestBookIdExists() {
         Optional<GuestBook> result = guestBookRepository.findByIdWithMember(savedGuestBook.getId());
 
         assertThat(result).isPresent();
@@ -102,7 +102,7 @@ class GuestBookRepositoryTest {
 
     @Test
     @DisplayName("내 방명록인 경우")
-    void existsByIdAndMemberId_True() {
+    void should_ReturnTrue_When_GuestBookIdAndMemberIdMatch() {
         boolean exists =
                 guestBookRepository.existsByIdAndMemberId(
                         savedGuestBook.getId(), savedMember.getId());
@@ -112,7 +112,7 @@ class GuestBookRepositoryTest {
 
     @Test
     @DisplayName("남의 방명록인 경우")
-    void existsByIdAndMemberId_False_When_MemberDiffers() {
+    void should_ReturnFalse_When_MemberIdDoesNotMatch() {
         Member otherMember =
                 Member.builder()
                         .nickname("도둑")
