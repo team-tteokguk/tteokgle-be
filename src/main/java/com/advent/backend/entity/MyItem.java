@@ -39,4 +39,20 @@ public class MyItem {
     @Column private Float pos_x;
     @Column private Float pos_y;
     @Column private Float pos_z;
+
+    public static MyItem acquire(MyTteok tteok, Item item) {
+        MyItem myItem = new MyItem();
+        myItem.tteok = tteok;
+        myItem.item = item;
+        myItem.isUsed = false;
+        myItem.isRead = false;
+        return myItem;
+    }
+
+    public void place(Float x, Float y, Float z) {
+        this.pos_x = x;
+        this.pos_y = y;
+        this.pos_z = z;
+        this.isUsed = true;
+    }
 }
