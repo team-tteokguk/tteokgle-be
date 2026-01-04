@@ -64,7 +64,7 @@ public class PointService {
         receiver.addPoint(itemCost);
 
         // 7. MyItem 생성 후 내 떡국에 저장
-        saveMyItem(receiver, item, receiverTteok);
+        saveMyItem(sender, item, receiverTteok);
 
         // 8. 거래 내역 저장
         savePointHistory(sender, receiver, item, itemCost, PointHistory.TradeType.CHARGE);
@@ -80,7 +80,6 @@ public class PointService {
 
     private void saveMyItem(Member buyer, Item item, MyTteok myTteok) {
         MyItem myitem = MyItem.builder().member(buyer).item(item).tteok(myTteok).build();
-
         myItemRepository.save(myitem);
     }
 

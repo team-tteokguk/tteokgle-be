@@ -16,7 +16,8 @@ public class PointHistory extends BaseTimeEntity {
     public enum TradeType {
         CHARGE,
         USE,
-        REFUND
+        REFUND,
+        EVENT_REWARD
     }
 
     @Id

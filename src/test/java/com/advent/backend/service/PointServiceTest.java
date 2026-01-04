@@ -27,6 +27,7 @@ public class PointServiceTest {
     @Autowired private StoreRepository storeRepository;
     @Autowired private ItemRepository itemRepository;
     @Autowired private MyTteokRepository myTteokRepository;
+    @Autowired private MyItemRepository myItemRepository;
 
     @MockitoBean private NotificationRepository notificationRepository;
 
@@ -113,6 +114,9 @@ public class PointServiceTest {
         // 3. 최신화된 객체로 검증
         assertThat(updatedBuyer.getPoint()).isEqualTo(A_POINT - ITEM_COSTB);
         assertThat(updatedSeller.getPoint()).isEqualTo(B_POINT + ITEM_COSTB);
+        //        System.out.println(myItemRepository.findByMemberId(updatedBuyer.getId()));
+        assertThat(myItemRepository.findByMemberId(updatedBuyer.getId()).get(0).getItem().getId())
+                .isEqualTo(itemB.getId());
     }
 
     @Test
