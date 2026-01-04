@@ -6,7 +6,7 @@ import lombok.*;
 
 // 금전 기록
 @Entity
-@Table(name = "point-history-tbl")
+@Table(name = "point_historys")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -21,18 +21,17 @@ public class PointHistory extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "history_id")
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id", nullable = false)
     private Member receiver;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
     private Member sender;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
     private Item item;
 
@@ -42,4 +41,15 @@ public class PointHistory extends BaseTimeEntity {
 
     @Column(name = "amount", nullable = false)
     private Integer amount;
+
+    public static PointHistory create(
+            Member receiver, Member sender, Item item, TradeType tradeType, Integer amount) {
+        return PointHistory.builder()
+                .receiver(receiver)
+                .sender(sender)
+                .item(item)
+                .tradeType(tradeType)
+                .amount(amount)
+                .build();
+    }
 }

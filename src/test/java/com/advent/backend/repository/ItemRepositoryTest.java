@@ -57,14 +57,13 @@ public class ItemRepositoryTest {
     @DisplayName("특정 상점의 판매 중인 아이템만 조회")
     void should_ReturnAvailableItems_When_StoreIdMatches() {
 
-        Item item1 = Item.register(myStore, "img1.jpg", 5, Item.ContentType.PHOTO, "예쁘죠?");
+        Item item1 = Item.create(myStore, "img1.jpg", 5, Item.ContentType.PHOTO, "예쁘죠?");
         em.persist(item1);
 
-        Item item2 = Item.register(myStore, "img2.jpg", 6, Item.ContentType.PHOTO, "구경하고 가세요~!");
+        Item item2 = Item.create(myStore, "img2.jpg", 6, Item.ContentType.PHOTO, "구경하고 가세요~!");
         em.persist(item2);
 
-        Item otherItem =
-                Item.register(otherStore, "img3.jpg", 7, Item.ContentType.PHOTO, "옆집 입니다!");
+        Item otherItem = Item.create(otherStore, "img3.jpg", 7, Item.ContentType.PHOTO, "옆집 입니다!");
         em.persist(otherItem);
 
         em.flush();

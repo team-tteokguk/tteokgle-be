@@ -36,7 +36,7 @@ public class MyItemRepositoryTest {
         Store store = Store.builder().member(owner).title("고명고명").build();
         em.persist(store);
 
-        salesItem = Item.register(store, "img123.jpg", 5, Item.ContentType.PHOTO, "최고급 고명");
+        salesItem = Item.create(store, "img123.jpg", 5, Item.ContentType.PHOTO, "최고급 고명");
         em.persist(salesItem);
 
         Member player =

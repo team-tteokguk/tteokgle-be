@@ -11,32 +11,34 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class MyItem {
+public class MyItem extends BaseTimeEntity {
     // 내 고명 ID
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     // 나의 고명의 주인
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
     // 떡국 ID
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tteok_id")
     private MyTteok tteok;
 
     // 고명 아이템 ID
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
     private Item item;
 
     // 컨텐츠 확인 여부
+    @Builder.Default
     @Column(columnDefinition = "boolean default false", nullable = false)
     private boolean isRead = false;
 
     // 고명 올림 여부
+    @Builder.Default
     @Column(columnDefinition = "boolean default false", nullable = false)
     private boolean isUsed = false;
 
@@ -46,12 +48,7 @@ public class MyItem {
     @Column private Float pos_z;
 
     public static MyItem acquire(MyTteok tteok, Item item) {
-        MyItem myItem = new MyItem();
-        myItem.tteok = tteok;
-        myItem.item = item;
-        myItem.isUsed = false;
-        myItem.isRead = false;
-        return myItem;
+        return MyItem.builder().tteok(tteok).item(item).build();
     }
 
     public void place(Float x, Float y, Float z) {

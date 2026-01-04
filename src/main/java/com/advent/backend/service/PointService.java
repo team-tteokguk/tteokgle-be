@@ -20,15 +20,10 @@ public class PointService {
     private final PointHistoryRepository pointHistoryRepository;
 
     @Transactional
-    public void transfer(UUID senderId, UUID receiverId, UUID itemId, int amount) {
+    public void transfer(UUID senderId, UUID receiverId, UUID itemId) {
         // 1. 자기 자신 송금 제한
         if (senderId.equals(receiverId)) {
             throw new BusinessException(ErrorCode.SELF_TRANSFER_NOT_ALLOWED);
-        }
-
-        // 2. 송금 금액 유효성 검사
-        if (amount <= 0) {
-            throw new BusinessException(ErrorCode.INVALID_TRANSFER_AMOUNT);
         }
 
         // 3. 보내는 사람 조회 (비관적 락 사용으로 동시성 제어)
@@ -52,21 +47,28 @@ public class PointService {
                 itemRepository
                         .findById(itemId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
+        Integer itemCost = item.getCost();
+
+        // 2. 송금 금액 유효성 검사
+        if (itemCost <= 0) {
+            throw new BusinessException(ErrorCode.INVALID_TRANSFER_AMOUNT);
+        }
 
         // 6. 비즈니스 로직 수행 (엔티티 내부 검증 로직 실행)
-        sender.decreasePoint(amount); // 잔액 부족 시 여기서 예외 발생 -> 자동 롤백
-        receiver.addPoint(amount);
+        sender.decreasePoint(itemCost); // 잔액 부족 시 여기서 예외 발생 -> 자동 롤백
+        receiver.addPoint(itemCost);
 
         // 7. MyItem 생성 후 내 떡국에 저장
         saveMyItem(receiver, item, receiverTteok);
 
         // 8. 거래 내역 저장
-        savePointHistory(sender, receiver, item, amount, PointHistory.TradeType.CHARGE);
+        savePointHistory(sender, receiver, item, itemCost, PointHistory.TradeType.CHARGE);
 
         // 9.  알림 저장
         notificationRepository.save(
                 Notification.builder()
                         .member(receiver)
+                        .NotificationType(Notification.NotificationType.SALE)
                         .message(sender.getNickname() + "님이 고명과 포인트를 선물하셨습니다!")
                         .build());
     }

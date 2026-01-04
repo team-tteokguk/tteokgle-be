@@ -10,9 +10,15 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PointHistoryRepository extends JpaRepository<PointHistory, UUID> {
-    // 특정 유저의 로그를 최신순으로 가져오기
-    List<PointHistory> findAllByMemberIdOrderByCreatedAtDesc(UUID memberId);
+    // 구매자의 로그를 최신순으로 가져오기
+    List<PointHistory> findAllBySenderIdOrderByCreatedAtDesc(UUID memberId);
+
+    // 판매자의 로그를 최신순으로 가져오기
+    List<PointHistory> findAllByReceiverIdOrderByCreatedAtDesc(UUID memberId);
 
     // 페이징 처리
-    Page<PointHistory> findByMemberIdOrderByCreatedAtDesc(UUID memberId, Pageable pageable);
+    Page<PointHistory> findBySenderIdOrderByCreatedAtDesc(UUID memberId, Pageable pageable);
+
+    // 페이징 처리
+    Page<PointHistory> findByReceiverIdOrderByCreatedAtDesc(UUID memberId, Pageable pageable);
 }

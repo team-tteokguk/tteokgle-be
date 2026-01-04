@@ -43,6 +43,16 @@ public class Member {
     @Builder.Default
     private Integer point = 0;
 
+    public static Member create(
+            String nickname, SocialType socialType, String socialId, Integer point) {
+        return Member.builder()
+                .nickname(nickname)
+                .socialType(socialType)
+                .socialId(socialId)
+                .point(point)
+                .build();
+    }
+
     // 서비스에서 사용할 업데이트 로직 (직접 작성)
     public Member updateNickname(String nickname) {
         this.nickname = nickname;

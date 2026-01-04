@@ -16,15 +16,18 @@ public class Store extends BaseTimeEntity {
     // pk (상점 ID)
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "uuid")
     private UUID id;
 
     // fk (상점 주인 ID)
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "FK_USER_ID"))
+    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(name = "FK_USER_ID"))
     private Member member;
 
     // 상점 이름
     @Column(nullable = false)
     private String title;
+
+    public static Store create(Member member, String title) {
+        return Store.builder().member(member).title(title).build();
+    }
 }
