@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -278,5 +279,74 @@ public class PointServiceTest {
         Member resultA = memberRepository.findById(memberA.getId()).orElseThrow();
 
         assertThat(resultA.getPoint()).isEqualTo(A_POINT - ITEM_COSTB + ITEM_COSTA);
+    }
+
+    @Test
+    @DisplayName("순서 보장 테스트: 잔액이 0원인 멤버에게 입금되는 순간 결제 요청이 들어왔을 때 결제가 처리되거나 결제가 실패된다.")
+    void should_SucceedOrFail_when_NoPointMemberConcurrentDepositAndWithdraw()
+            throws InterruptedException {
+        Member buyer =
+                Member.builder()
+                        .nickname("거지")
+                        .socialType(Member.SocialType.KAKAO)
+                        .socialId("거지의 아이디")
+                        .point(0)
+                        .build();
+
+        memberRepository.save(buyer);
+        Store buyerStore = Store.builder().member(buyer).title("거지의 상점").build();
+        storeRepository.save(buyerStore);
+        Item buyerItem =
+                Item.builder()
+                        .store(buyerStore)
+                        .imageUrl("이미지 url")
+                        .cost(200)
+                        .contentType(Item.ContentType.NONE)
+                        .contentData("{}")
+                        .content("내용")
+                        .isAvailable(true)
+                        .build();
+
+        itemRepository.save(buyerItem);
+        myTteokRepository.save(MyTteok.builder().member(buyer).build());
+
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+
+        AtomicBoolean isPurchaseFailed = new AtomicBoolean(false);
+
+        // B -> buyer 구매
+        executorService.submit(
+                () -> {
+                    try {
+                        pointService.transfer(memberB.getId(), buyer.getId(), buyerItem.getId());
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
+
+        // buyer -> A 구매
+        executorService.submit(
+                () -> {
+                    try {
+                        pointService.transfer(buyer.getId(), memberA.getId(), itemA.getId());
+                    } catch (BusinessException e) {
+                        isPurchaseFailed.set(true);
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
+
+        countDownLatch.await();
+
+        Member resultA = memberRepository.findById(buyer.getId()).orElseThrow();
+
+        if (isPurchaseFailed.get()) {
+            System.out.println("실패해서 입금만");
+            assertThat(resultA.getPoint()).isEqualTo(200);
+        } else {
+            System.out.println("성공해서 100");
+            assertThat(resultA.getPoint()).isEqualTo(100);
+        }
     }
 }
