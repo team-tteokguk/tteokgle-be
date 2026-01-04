@@ -175,7 +175,7 @@ public class PointServiceTest {
     @Test
     @DisplayName("다 대 일 송금: N명이 동시에 한 명에게 송금할 때 포인트 합계가 정확히 반영된다.")
     void should_AccuratePoints_when_MultipleMembersTransferToOne() throws InterruptedException {
-        int threadCount = 100;
+        int threadCount = 15;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
 

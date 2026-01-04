@@ -24,7 +24,10 @@ public enum ErrorCode {
 
     // 사용자 유효성
     MEMBER_NOT_FOUND(404, "M001", "존재하지 않는 사용자입니다."),
-    MYTTEOK_NOT_FOUND(404, "M002", "존재하지 않는 떡국입니다.");
+    MYTTEOK_NOT_FOUND(404, "M002", "존재하지 않는 떡국입니다."),
+
+    // 트랜잭션 오류
+    INVALID_TRANSACTION_STATUS(404, "T001", "유효하지 않은 거래입니다.");
 
     private final String code;
     private final String message;
