@@ -238,4 +238,45 @@ public class PointServiceTest {
         assertThat(resultA.getPoint()).isEqualTo(A_POINT - ITEM_COSTB + ITEM_COSTA);
         assertThat(resultB.getPoint()).isEqualTo(B_POINT - ITEM_COSTA + ITEM_COSTB);
     }
+
+    @Test
+    @DisplayName("동시성 테스트: 멤버 A에게 포인트가 입금되는 순간 멤버 A가 물건을 구매했을 때 최종 잔액이 정확히 반영된다.")
+    void should_AccuratePoints_when_ConcurrentIncomeAndExpense() throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+
+        Member buyer =
+                Member.builder()
+                        .nickname("거지")
+                        .socialType(Member.SocialType.KAKAO)
+                        .socialId("거지의 아이디")
+                        .point(100)
+                        .build();
+
+        memberRepository.save(buyer);
+
+        executorService.submit(
+                () -> {
+                    try {
+                        pointService.transfer(memberA.getId(), memberB.getId(), itemB.getId());
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
+
+        executorService.submit(
+                () -> {
+                    try {
+                        pointService.transfer(buyer.getId(), memberA.getId(), itemA.getId());
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
+
+        countDownLatch.await();
+
+        Member resultA = memberRepository.findById(memberA.getId()).orElseThrow();
+
+        assertThat(resultA.getPoint()).isEqualTo(A_POINT - ITEM_COSTB + ITEM_COSTA);
+    }
 }
