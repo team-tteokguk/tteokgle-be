@@ -29,72 +29,93 @@ public class PointServiceTest {
 
     @MockitoBean private NotificationRepository notificationRepository;
 
-    private Member buyer;
-    private Member seller;
-    private Store store;
-    private Item item;
+    private Member memberA; // 구매자
+    private Member memberB; // 판매자
+    private Store storeA;
+    private Store storeB;
+    private Item itemA;
+    private Item itemB;
 
-    private final Integer BUYER_POINT = 1000;
-    private final Integer SELLER_POINT = 0;
-    private final Integer ITEM_COST = 100;
+    private final Integer A_POINT = 1000;
+    private final Integer B_POINT = 1000;
+    private final Integer ITEM_COSTA = 100;
+    private final Integer ITEM_COSTB = 100;
 
     @BeforeEach
     void setUp() {
         // 1. 빌더 패턴으로 통환된 엔티티 생성 (일관성 유지)
-        buyer =
+        memberA =
                 Member.builder()
                         .nickname("구매자")
                         .socialType(Member.SocialType.KAKAO)
                         .socialId("buyer_id")
-                        .point(BUYER_POINT)
+                        .point(A_POINT)
                         .build();
 
-        memberRepository.save(buyer);
+        memberRepository.save(memberA);
 
-        seller =
-                Member.builder()
-                        .nickname("판매자")
-                        .socialType(Member.SocialType.KAKAO)
-                        .socialId("seller_id")
-                        .point(SELLER_POINT)
-                        .build();
+        storeA = Store.builder().member(memberA).title("외요의 상점").build();
 
-        memberRepository.save(seller);
+        storeRepository.save(storeA);
 
-        Store store = Store.builder().member(seller).title("외요의 상점").build();
-
-        storeRepository.save(store);
-
-        item =
+        itemA =
                 Item.builder()
-                        .store(store)
+                        .store(storeA)
                         .imageUrl("이미지 url")
-                        .cost(ITEM_COST)
+                        .cost(ITEM_COSTA)
                         .contentType(Item.ContentType.NONE)
                         .contentData("{}")
                         .content("내용")
                         .isAvailable(true)
                         .build();
 
-        itemRepository.save(item);
-        myTteokRepository.save(MyTteok.builder().member(seller).build());
+        itemRepository.save(itemA);
+        myTteokRepository.save(MyTteok.builder().member(memberA).build());
+
+        memberB =
+                Member.builder()
+                        .nickname("판매자")
+                        .socialType(Member.SocialType.KAKAO)
+                        .socialId("seller_id")
+                        .point(B_POINT)
+                        .build();
+
+        memberRepository.save(memberB);
+
+        storeB = Store.builder().member(memberB).title("외요의 상점").build();
+
+        storeRepository.save(storeB);
+
+        itemB =
+                Item.builder()
+                        .store(storeB)
+                        .imageUrl("이미지 url")
+                        .cost(ITEM_COSTB)
+                        .contentType(Item.ContentType.NONE)
+                        .contentData("{}")
+                        .content("내용")
+                        .isAvailable(true)
+                        .build();
+
+        itemRepository.save(itemB);
+        myTteokRepository.save(MyTteok.builder().member(memberB).build());
     }
 
     @Test
-    @DisplayName("송금 성공: 두 멤버 간 포인트 거래 시 잔액이 정확하게 변하는지")
+    @DisplayName("송금 성공: 두 멤버 간 포인트 거래 시 잔액이 정확하게 변한다.")
     void should_AccurateChanges_When_PointsTransferredBetweenMembers() {
-        pointService.transfer(buyer.getId(), seller.getId(), item.getId());
+        pointService.transfer(memberA.getId(), memberB.getId(), itemB.getId());
 
-        Member updatedBuyer = memberRepository.findById(buyer.getId()).orElseThrow();
-        Member updatedSeller = memberRepository.findById(seller.getId()).orElseThrow();
+        Member updatedBuyer = memberRepository.findById(memberA.getId()).orElseThrow();
+        Member updatedSeller = memberRepository.findById(memberB.getId()).orElseThrow();
 
         // 3. 최신화된 객체로 검증
-        assertThat(updatedBuyer.getPoint()).isEqualTo(BUYER_POINT - ITEM_COST);
-        assertThat(updatedSeller.getPoint()).isEqualTo(SELLER_POINT + ITEM_COST);
+        assertThat(updatedBuyer.getPoint()).isEqualTo(A_POINT - ITEM_COSTB);
+        assertThat(updatedSeller.getPoint()).isEqualTo(B_POINT + ITEM_COSTB);
     }
 
     @Test
-    @DisplayName("잔액 부족 실패: 잔액이 발생할 때 예외가 발생하는지")
+    @DisplayName("잔액 부족 실패: 잔액이 발생할 때 예외가 발생한다.")
     void should_ThrowException_when_BuyerHasInSufficentPoints() {
         Member poorBuyer =
                 Member.builder()
@@ -110,40 +131,45 @@ public class PointServiceTest {
         assertThatThrownBy(
                         () ->
                                 pointService.transfer(
-                                        poorBuyer.getId(), seller.getId(), item.getId()))
+                                        poorBuyer.getId(), memberB.getId(), itemB.getId()))
                 .isInstanceOf(BusinessException.class);
 
         assertThat(failedBuyer.getPoint()).isEqualTo(50);
     }
 
     @Test
-    @DisplayName("송금 도중 강제로 에러를 발생시켰을 때 잔액이 원래대로 돌아오는지")
+    @DisplayName("롤백 테스트: 송금 도중 강제로 에러를 발생시켰을 때 잔액이 원래대로 돌아온다.")
     void should_Rollback_when_ErrorOccursDuringTransfer() {
         BDDMockito.doThrow(new RuntimeException("강제 에러 발생"))
                 .when(notificationRepository)
                 .save(any());
 
-        assertThatThrownBy(() -> pointService.transfer(buyer.getId(), seller.getId(), item.getId()))
+        assertThatThrownBy(
+                        () ->
+                                pointService.transfer(
+                                        memberA.getId(), memberB.getId(), itemB.getId()))
                 .isInstanceOf(RuntimeException.class);
 
-        Member failedBuyer = memberRepository.findById(buyer.getId()).orElseThrow();
+        Member failedBuyer = memberRepository.findById(memberA.getId()).orElseThrow();
 
-        assertThat(failedBuyer.getPoint()).isEqualTo(BUYER_POINT);
+        assertThat(failedBuyer.getPoint()).isEqualTo(A_POINT);
     }
 
     @Test
-    @DisplayName("존재하지 않는 ID로 송금 시 에러가 발생하는지")
+    @DisplayName("유효성 테스트: 존재하지 않는 ID로 송금 시 에러가 발생한다.")
     void should_ThrowException_when_TransferToNotFoundedMember() {
         UUID unfoundedMemberId = UUID.randomUUID();
 
         assertThatThrownBy(
-                        () -> pointService.transfer(buyer.getId(), unfoundedMemberId, item.getId()))
+                        () ->
+                                pointService.transfer(
+                                        memberA.getId(), unfoundedMemberId, itemB.getId()))
                 .isInstanceOf(BusinessException.class);
     }
 
     @Test
-    @DisplayName("N명이 동시에 1명에게 송금할 때 포인트 합계가 정확한지")
-    void should_AccuratePoints_when_ManyTransfersToOne() throws InterruptedException {
+    @DisplayName("다 대 일 송금: N명이 동시에 한 명에게 송금할 때 포인트 합계가 정확히 반영된다.")
+    void should_AccuratePoints_when_MultipleMembersTransferToOne() throws InterruptedException {
         int threadCount = 100;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
@@ -161,7 +187,8 @@ public class PointServiceTest {
             executorService.submit(
                     () -> {
                         try {
-                            pointService.transfer(new_buyer.getId(), seller.getId(), item.getId());
+                            pointService.transfer(
+                                    new_buyer.getId(), memberB.getId(), itemB.getId());
                         } catch (BusinessException e) {
                             System.out.println(e.getMessage());
                         } finally {
@@ -172,8 +199,43 @@ public class PointServiceTest {
 
         countDownLatch.await();
 
-        Member resultSeller = memberRepository.findById(seller.getId()).orElseThrow();
+        Member resultSeller = memberRepository.findById(memberB.getId()).orElseThrow();
 
-        assertThat(resultSeller.getPoint()).isEqualTo(SELLER_POINT + ITEM_COST * threadCount);
+        assertThat(resultSeller.getPoint()).isEqualTo(B_POINT + ITEM_COSTB * threadCount);
+    }
+
+    @Test
+    @DisplayName("데드락 테스트: 멤버 A와 멤버 B가 서로의 상점에서 물건을 구매했을 때, 데드락 없이 잔액이 정확히 반영된다.")
+    void should_MaintainConsistency_when_MutualTransferOccurs() throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+
+        // 1. 멤버 A -> 상점 B에서 구매
+        executorService.submit(
+                () -> {
+                    try {
+                        pointService.transfer(memberA.getId(), memberB.getId(), itemB.getId());
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
+
+        // 2. 멤버 B -> 상점 A에서 구매
+        executorService.submit(
+                () -> {
+                    try {
+                        pointService.transfer(memberB.getId(), memberA.getId(), itemA.getId());
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
+
+        countDownLatch.await();
+
+        Member resultA = memberRepository.findById(memberA.getId()).orElseThrow();
+        Member resultB = memberRepository.findById(memberB.getId()).orElseThrow();
+
+        assertThat(resultA.getPoint()).isEqualTo(A_POINT - ITEM_COSTB + ITEM_COSTA);
+        assertThat(resultB.getPoint()).isEqualTo(B_POINT - ITEM_COSTA + ITEM_COSTB);
     }
 }

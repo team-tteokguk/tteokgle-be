@@ -26,30 +26,35 @@ public class PointService {
             throw new BusinessException(ErrorCode.SELF_TRANSFER_NOT_ALLOWED);
         }
 
-        // 3. 보내는 사람 조회 (비관적 락 사용으로 동시성 제어)
-        Member sender =
-                memberRepository
-                        .findByIdWithLock(senderId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        // 2. 데드락 방지를 위한 락 순서 결정 및 멤버 조회
+        UUID firstId = senderId.compareTo(receiverId) < 0 ? senderId : receiverId;
+        UUID secondId = senderId.compareTo(receiverId) < 0 ? receiverId : senderId;
 
-        // 4. 받는 사람 조회
-        Member receiver =
-                memberRepository
-                        .findByIdWithLock(receiverId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        memberRepository
+                .findByIdWithLock(firstId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        memberRepository
+                .findByIdWithLock(secondId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        Member sender = memberRepository.findById(senderId).get();
+        Member receiver = memberRepository.findById(receiverId).get();
+
+        // 3. 구매자의 나의 떡국 조회
         MyTteok receiverTteok =
                 myTteokRepository
                         .findByMember_Id(receiverId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.MYTTEOK_NOT_FOUND));
 
-        // 5. 아이템 조회
+        // 4. 구매할 아이템 조회
         Item item =
                 itemRepository
                         .findById(itemId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
         Integer itemCost = item.getCost();
 
-        // 2. 송금 금액 유효성 검사
+        // 5. 송금 금액 유효성 검사
         if (itemCost <= 0) {
             throw new BusinessException(ErrorCode.INVALID_TRANSFER_AMOUNT);
         }
@@ -69,7 +74,7 @@ public class PointService {
                 Notification.builder()
                         .member(receiver)
                         .NotificationType(Notification.NotificationType.SALE)
-                        .message(sender.getNickname() + "님이 고명과 포인트를 선물하셨습니다!")
+                        .message(sender.getNickname() + "님이 " + item.getContent() + "을 구매하셨습니다.")
                         .build());
     }
 
