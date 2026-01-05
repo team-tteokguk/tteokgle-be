@@ -29,9 +29,6 @@ public class TransferEventListener {
                 event.sender().getId(),
                 event.receiver().getId());
         try {
-            // 성공 로그 작성
-            log.info("[알림 시작]");
-
             // 알림 발송
             notificationRepository.save(
                     Notification.builder()
@@ -43,7 +40,6 @@ public class TransferEventListener {
                                             + event.itemName()
                                             + "을 구매하셨습니다.")
                             .build());
-            log.info("[알림 ㄲ<ㅌ]");
         } catch (Exception e) {
             log.error("[NOTIFICATION_ERROR] 알림 저장 실패: {}", e.getMessage());
         }

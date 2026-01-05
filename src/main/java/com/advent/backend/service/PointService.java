@@ -59,7 +59,7 @@ public class PointService {
             // 3. 구매자의 나의 떡국 조회
             MyTteok receiverTteok =
                     myTteokRepository
-                            .findByMember_Id(receiverId)
+                            .findByMemberId(receiverId)
                             .orElseThrow(() -> new BusinessException(ErrorCode.MYTTEOK_NOT_FOUND));
 
             // 4. 구매할 아이템 조회
