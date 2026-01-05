@@ -6,7 +6,7 @@ import lombok.*;
 
 // 알림
 @Entity
-@Table(name = "member_notifications")
+@Table(name = "notifications")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder

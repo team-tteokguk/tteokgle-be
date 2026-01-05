@@ -103,6 +103,15 @@ public class PointServiceTest {
 
         itemRepository.save(itemB);
         myTteokRepository.save(MyTteok.builder().member(memberB).build());
+
+        Notification notification =
+                Notification.builder()
+                        .member(memberA)
+                        .notificationType(Notification.NotificationType.COMMENT)
+                        .message("네 고명에 큰 인상을 받았어")
+                        .build();
+
+        notificationRepository.saveAndFlush(notification);
     }
 
     @Test
