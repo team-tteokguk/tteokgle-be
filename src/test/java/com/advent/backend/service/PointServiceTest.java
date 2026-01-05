@@ -63,6 +63,7 @@ public class PointServiceTest {
         itemA =
                 Item.builder()
                         .store(storeA)
+                        .name("이름")
                         .imageUrl("이미지 url")
                         .cost(ITEM_COSTA)
                         .contentType(Item.ContentType.NONE)
@@ -91,6 +92,7 @@ public class PointServiceTest {
         itemB =
                 Item.builder()
                         .store(storeB)
+                        .name("이름")
                         .imageUrl("이미지 url")
                         .cost(ITEM_COSTB)
                         .contentType(Item.ContentType.NONE)
@@ -175,7 +177,7 @@ public class PointServiceTest {
     @Test
     @DisplayName("다 대 일 송금: N명이 동시에 한 명에게 송금할 때 포인트 합계가 정확히 반영된다.")
     void should_AccuratePoints_when_MultipleMembersTransferToOne() throws InterruptedException {
-        int threadCount = 15;
+        int threadCount = 100;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
 
@@ -302,6 +304,7 @@ public class PointServiceTest {
         storeRepository.save(buyerStore);
         Item buyerItem =
                 Item.builder()
+                        .name("이름")
                         .store(buyerStore)
                         .imageUrl("이미지 url")
                         .cost(200)

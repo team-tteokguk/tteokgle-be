@@ -3,12 +3,16 @@ package com.advent.backend.service;
 import com.advent.backend.common.error.ErrorCode;
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.entity.*;
+import com.advent.backend.event.TransferEvent;
 import com.advent.backend.repository.*;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PointService {
@@ -16,14 +20,20 @@ public class PointService {
     private final ItemRepository itemRepository;
     private final MyItemRepository myItemRepository;
     private final MyTteokRepository myTteokRepository;
-    private final NotificationRepository notificationRepository;
     private final PointHistoryRepository pointHistoryRepository;
-    private final TransactionHistoryService transactionHistoryService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public void transfer(UUID senderId, UUID receiverId, UUID itemId) {
         // 트랜잭션 기록 생성
-        TransactionHistory txHistory = transactionHistoryService.startHistory(senderId, receiverId);
+        UUID txId = UUID.randomUUID();
+
+        log.info(
+                "[tx_START] ID: {}, SenderId: {}, ReceiverId: {}, ItemId: {}",
+                txId,
+                senderId,
+                receiverId,
+                itemId);
 
         try {
             // 1. 자기 자신 송금 제한
@@ -71,29 +81,16 @@ public class PointService {
             // 7. MyItem 생성 후 내 떡국에 저장
             saveMyItem(sender, item, receiverTteok);
 
-            // 8. 거래 내역 저장
+            // 8. Point History 저장
             savePointHistory(sender, receiver, item, itemCost, PointHistory.TradeType.CHARGE);
 
-            // 9.  알림 저장
-            notificationRepository.save(
-                    Notification.builder()
-                            .member(receiver)
-                            .NotificationType(Notification.NotificationType.SALE)
-                            .message(
-                                    sender.getNickname() + "님이 " + item.getContent() + "을 구매하셨습니다.")
-                            .build());
-
-            // 트랜잭션 성공
-            transactionHistoryService.successHistory(txHistory.getId());
+            // 성공 이벤트 발행
+            applicationEventPublisher.publishEvent(
+                    new TransferEvent(txId, sender, receiver, item.getName()));
         } catch (Exception e) {
-            transactionHistoryService.failHistory(txHistory.getId(), e.getMessage());
+            log.error("[tx_FAILED] ID: {}, Reason: {}", txId, e.getMessage());
             throw e;
         }
-    }
-
-    private void saveMyItem(Member buyer, Item item, MyTteok myTteok) {
-        MyItem myitem = MyItem.builder().member(buyer).item(item).tteok(myTteok).build();
-        myItemRepository.save(myitem);
     }
 
     private void savePointHistory(
@@ -108,5 +105,10 @@ public class PointService {
                         .build();
 
         pointHistoryRepository.save(history);
+    }
+
+    private void saveMyItem(Member buyer, Item item, MyTteok myTteok) {
+        MyItem myitem = MyItem.builder().member(buyer).item(item).tteok(myTteok).build();
+        myItemRepository.save(myitem);
     }
 }

@@ -31,6 +31,9 @@ public class Item extends BaseTimeEntity {
     @JoinColumn(name = "store_id")
     private Store store;
 
+    @Column(nullable = false, length = 10)
+    private String name;
+
     // 가격
     @Column(nullable = false)
     private Integer cost;
@@ -67,6 +70,7 @@ public class Item extends BaseTimeEntity {
             Store store, String imageUrl, Integer cost, ContentType contentType, String content) {
         return Item.builder()
                 .store(store)
+                .name("이름")
                 .imageUrl(imageUrl)
                 .cost(cost)
                 .contentType(contentType)

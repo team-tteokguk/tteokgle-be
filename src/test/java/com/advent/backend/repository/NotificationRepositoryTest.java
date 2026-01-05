@@ -40,11 +40,11 @@ public class NotificationRepositoryTest {
         Notification notification =
                 Notification.builder()
                         .member(member)
-                        .NotificationType(Notification.NotificationType.COMMENT)
+                        .notificationType(Notification.NotificationType.COMMENT)
                         .message("네 고명에 큰 인상을 받았어")
                         .build();
 
-        notificationRepository.save(notification);
+        notificationRepository.saveAndFlush(notification);
 
         Optional<Notification> result = notificationRepository.findById(notification.getId());
 
@@ -70,28 +70,28 @@ public class NotificationRepositoryTest {
         Notification notification =
                 Notification.builder()
                         .member(member)
-                        .NotificationType(Notification.NotificationType.COMMENT)
+                        .notificationType(Notification.NotificationType.COMMENT)
                         .message("네 고명에 큰 인상을 받았어")
                         .build();
 
         Notification notification2 =
                 Notification.builder()
                         .member(member)
-                        .NotificationType(Notification.NotificationType.SALE)
+                        .notificationType(Notification.NotificationType.SALE)
                         .message("a회원이 님 고명을 구매했어요")
                         .build();
 
         Notification notification3 =
                 Notification.builder()
                         .member(member)
-                        .NotificationType(Notification.NotificationType.SUBSCRIBE)
+                        .notificationType(Notification.NotificationType.SUBSCRIBE)
                         .message("a회원이 님 상점을 구독했어요")
                         .build();
 
         Notification notification4 =
                 Notification.builder()
                         .member(member)
-                        .NotificationType(Notification.NotificationType.SUBSCRIBE)
+                        .notificationType(Notification.NotificationType.SUBSCRIBE)
                         .message("전체 회원들한테 공지 드림")
                         .build();
 
@@ -119,28 +119,28 @@ public class NotificationRepositoryTest {
         Notification notification =
                 Notification.builder()
                         .member(member)
-                        .NotificationType(Notification.NotificationType.COMMENT)
+                        .notificationType(Notification.NotificationType.COMMENT)
                         .message("네 고명에 큰 인상을 받았어")
                         .build();
 
         Notification notification2 =
                 Notification.builder()
                         .member(member)
-                        .NotificationType(Notification.NotificationType.SALE)
+                        .notificationType(Notification.NotificationType.SALE)
                         .message("a회원이 님 고명을 구매했어요")
                         .build();
 
         Notification notification3 =
                 Notification.builder()
                         .member(member)
-                        .NotificationType(Notification.NotificationType.SUBSCRIBE)
+                        .notificationType(Notification.NotificationType.SUBSCRIBE)
                         .message("a회원이 님 상점을 구독했어요")
                         .build();
 
         Notification notification4 =
                 Notification.builder()
                         .member(member)
-                        .NotificationType(Notification.NotificationType.ALARM)
+                        .notificationType(Notification.NotificationType.ALARM)
                         .message("전체 회원들한테 공지 드림")
                         .build();
 
