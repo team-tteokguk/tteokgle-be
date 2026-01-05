@@ -1,5 +1,7 @@
 package com.advent.backend.entity;
 
+import com.advent.backend.common.error.ErrorCode;
+import com.advent.backend.common.error.exception.BusinessException;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.*;
@@ -41,6 +43,16 @@ public class Member {
     @Builder.Default
     private Integer point = 0;
 
+    public static Member create(
+            String nickname, SocialType socialType, String socialId, Integer point) {
+        return Member.builder()
+                .nickname(nickname)
+                .socialType(socialType)
+                .socialId(socialId)
+                .point(point)
+                .build();
+    }
+
     // 서비스에서 사용할 업데이트 로직 (직접 작성)
     public Member updateNickname(String nickname) {
         this.nickname = nickname;
@@ -49,14 +61,14 @@ public class Member {
 
     public void addPoint(int amount) {
         if (amount < 0) {
-            throw new IllegalArgumentException("충전할 포인트는 0보다 커야 합니다.");
+            throw new BusinessException(ErrorCode.INSUFFICIENT_BALANCE);
         }
         this.point += amount;
     }
 
     public void decreasePoint(int amount) {
         if (this.point < amount) {
-            throw new IllegalArgumentException("포인트가 부족합니다. (현재: " + this.point + ")");
+            throw new BusinessException(ErrorCode.INSUFFICIENT_BALANCE);
         }
         this.point -= amount;
     }

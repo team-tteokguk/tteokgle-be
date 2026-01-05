@@ -2,15 +2,15 @@ package com.advent.backend.entity;
 
 import jakarta.persistence.*;
 import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 // 나의 떡국
 @Entity
 @Table(name = "my_tteoks")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor
 public class MyTteok {
     // 나의 떡국 ID
     @Id
@@ -23,8 +23,6 @@ public class MyTteok {
     private Member member;
 
     public static MyTteok create(Member member) {
-        MyTteok tteok = new MyTteok();
-        tteok.member = member;
-        return tteok;
+        return MyTteok.builder().member(member).build();
     }
 }

@@ -8,9 +8,9 @@ import lombok.*;
 @Entity
 @Table(name = "notifications")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends BaseTimeEntity {
 
     public enum NotificationType {
@@ -24,13 +24,13 @@ public class Notification extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private NotificationType NotificationType;
+    @Column(name = "notification_type", nullable = false)
+    private NotificationType notificationType;
 
     @Column(name = "link")
     private String link;
