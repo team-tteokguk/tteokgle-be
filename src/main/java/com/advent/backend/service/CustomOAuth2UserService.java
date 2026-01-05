@@ -2,6 +2,7 @@ package com.advent.backend.service;
 
 import com.advent.backend.entity.Member;
 import com.advent.backend.repository.MemberRepository;
+import com.advent.backend.security.CustomUserDetails;
 import com.advent.backend.security.KakaoUserDetails;
 import com.advent.backend.security.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -30,22 +32,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             userInfo = new KakaoUserDetails(oAuth2User.getAttributes());
         }
 
-        saveOrUpdate(userInfo);
+        Member member =
+                memberService.registerIFNew(userInfo.getSocialId(), userInfo.getSocialType());
 
-        return oAuth2User;
-    }
-
-    private void saveOrUpdate(OAuth2UserInfo userInfo) {
-        memberRepository
-                .findBySocialTypeAndSocialId(userInfo.getSocialType(), userInfo.getSocialId())
-                .map(member -> member.updateNickname(userInfo.getNickname())) // 있으면 업데이트
-                .orElseGet(
-                        () ->
-                                memberRepository.save(
-                                        Member.builder() // 없으면 생성
-                                                .socialType(userInfo.getSocialType())
-                                                .socialId(userInfo.getSocialId())
-                                                .nickname(userInfo.getNickname())
-                                                .build()));
+        return new CustomUserDetails(member, oAuth2User.getAttributes());
     }
 }
