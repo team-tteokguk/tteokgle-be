@@ -35,5 +35,9 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
     @Query("UPDATE Member m SET m.point = m.point + :amount")
     int addPointToAllMemebers(@Param("amount") int amount);
 
+    Boolean existsByNickname(String nickname);
+
+    Optional<Member> findByMemberId(UUID MemberId);
+
     Optional<Member> findBySocialId(String socialId);
 }

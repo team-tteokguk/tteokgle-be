@@ -21,6 +21,7 @@ public class SecurityConfig {
         "/v3/api-docs/**",
         "/api/v1/posts/**",
         "/api/v1/replies/**",
+        "/nickname",
         "/login", // 커스텀 로그인 페이지
         "/auth/login/kakao/**" // 사용자 정의 경로
     };

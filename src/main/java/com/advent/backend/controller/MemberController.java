@@ -1,6 +1,7 @@
 package com.advent.backend.controller;
 
 import com.advent.backend.dto.MemberDto;
+import com.advent.backend.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +12,40 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/members")
 public class MemberController {
+
+    private final MemberService memberService;
+
+    public MemberController(MemberService memberService) {
+        this.memberService = memberService;
+    }
+
+    @Operation(summary = "닉네임 유효성 검사", description = "회원 가입 전 닉네임 생성을 위해 닉네임 유효성 검사를 진행합니다.")
+    @PostMapping("/nickname")
+    public ResponseEntity<Boolean> isNicknameValid(@RequestParam("nickname") String newNickname) {
+        memberService.isNicknameValid(newNickname);
+        return ResponseEntity.ok(true);
+    }
+
+    //    /**
+    //     * 닉네임 등록
+    //     * @param authorization
+    //     * @return
+    //     */
+    //    @Operation(summary = "닉네임 최종 등록", description = "유효성 검증이 완료된 닉네임을 유저에게 최종적으로 부여합니다.")
+    //    @PostMapping("/nickname")
+    //    public ResponseEntity<Boolean> updateNickname(
+    //        @RequestParam("isAvailabe") Boolean isAvailable,
+    //        @RequestParam("nickname") String newNickname,
+    //        @AuthenticationPrincipal CustomUserDetails  customUserDetails
+    //        ){
+    //        if (!isAvailable) throw new BusinessException(ErrorCode.UNVAILED_NICKNAME);
+    //
+    //        UUID memberId = customUserDetails.getMember().getId();
+    //
+    //        memberService.updateNickName(memberId, newNickname);
+    //
+    //        return ResponseEntity.ok(true);
+    //    }
 
     @Operation(summary = "내 정보 조회", description = "로그인한 회원의 정보를 조회합니다.")
     @GetMapping("/me")

@@ -20,14 +20,22 @@ public enum ErrorCode {
     INVALID_TRANSFER_AMOUNT(404, "P003", "유효하지 않은 포인트입니다."),
 
     // 아이템 유효성
-    ITEM_NOT_FOUND(400, "I001", "존재하지 않는 아이템입니다."),
+    ITEM_NOT_FOUND(409, "I001", "존재하지 않는 아이템입니다."),
 
     // 사용자 유효성
     MEMBER_NOT_FOUND(404, "M001", "존재하지 않는 사용자입니다."),
     MYTTEOK_NOT_FOUND(404, "M002", "존재하지 않는 떡국입니다."),
 
-    // 트랜잭션 오류
-    INVALID_TRANSACTION_STATUS(404, "T001", "유효하지 않은 거래입니다.");
+    // 비지니스 충돌
+    DUPLICATE_NICKNAME(409, "M003", "이미 존재하는 닉네임입니다."),
+
+    // 입력값 유효성 (값 자체가 잘못되었을 때 - 400)
+    INVALID_NICKNAME_LENGTH(400, "M004", "닉네임 길이가 유효하지 않습니다."),
+    RESTRICTED_NICKNAME(400, "M005", "사용할 수 없는 닉네임입니다."),
+    INVALID_NICKNAME(400, "M006", "유효하지 않은 닉네임입니다."),
+
+    // 트랜잭션 오류 (유효하지 않은 상태)
+    INVALID_TRANSACTION_STATUS(409, "T001", "유효하지 않은 거래입니다.");
 
     private final String code;
     private final String message;
