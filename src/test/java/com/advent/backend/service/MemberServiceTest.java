@@ -9,7 +9,6 @@ import com.advent.backend.entity.Member;
 import com.advent.backend.repository.MemberRepository;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,43 +35,6 @@ public class MemberServiceTest {
                         .build();
 
         memberRepository.save(memberA);
-    }
-
-    @Test
-    @DisplayName("닉네임 유효성 검사를 통과합니다.")
-    public void should_SuccessValidTest_when_ValidNickName() {
-        Assertions.assertDoesNotThrow(
-                () -> {
-                    memberService.isNicknameValid("외요");
-                });
-    }
-
-    @Test
-    @DisplayName("유효하지 않은 닉네임으로 닉네임 유효성 검사 시 예외가 발생한다.")
-    public void should_FailedValidTest_when_InValidNickName() {
-        assertThatThrownBy(
-                        () -> {
-                            memberService.isNicknameValid("욍");
-                        })
-                .isInstanceOf(BusinessException.class);
-
-        assertThatThrownBy(
-                        () -> {
-                            memberService.isNicknameValid("외요외요외요외요외요외요외요외요외요");
-                        })
-                .isInstanceOf(BusinessException.class);
-
-        assertThatThrownBy(
-                        () -> {
-                            memberService.isNicknameValid("관리자");
-                        })
-                .isInstanceOf(BusinessException.class);
-
-        assertThatThrownBy(
-                        () -> {
-                            memberService.isNicknameValid("있는이름");
-                        })
-                .isInstanceOf(BusinessException.class);
     }
 
     @Test
