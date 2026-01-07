@@ -4,6 +4,7 @@ import com.advent.backend.common.error.ErrorCode;
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.entity.Member;
 import com.advent.backend.repository.MemberRepository;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class MemberService {
     /** 닉네임 중복 체크 */
     public void isNicknameValid(String nickname) {
         // 1. 길이 체크 (2 ~ 10자)
-        if (nickname == null || nickname.length() < 11 || nickname.length() > 1) {
+        if (nickname == null || nickname.length() > 12 || nickname.length() < 2) {
             throw new BusinessException(ErrorCode.INVALID_NICKNAME_LENGTH);
         }
 
@@ -43,10 +44,11 @@ public class MemberService {
      * @param MemberId
      * @param nickname
      */
+    @Transactional
     public void updateNickName(UUID MemberId, String nickname) {
         Member member =
                 memberRepository
-                        .findByMemberId(MemberId)
+                        .findById(MemberId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         member.updateNickname(nickname);
@@ -56,17 +58,12 @@ public class MemberService {
     public Member registerIFNew(String socialId, Member.SocialType socialType) {
         return memberRepository
                 .findBySocialId(socialId)
-                .map(
-                        existedMember -> {
-                            return existedMember;
-                        })
                 .orElseGet(
-                        () -> {
-                            return memberRepository.save(
-                                    Member.builder()
-                                            .socialId(socialId)
-                                            .socialType(socialType)
-                                            .build());
-                        });
+                        () ->
+                                memberRepository.save(
+                                        Member.builder()
+                                                .socialId(socialId)
+                                                .socialType(socialType)
+                                                .build()));
     }
 }
