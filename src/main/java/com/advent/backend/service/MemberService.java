@@ -54,7 +54,13 @@ public class MemberService {
         member.updateNickname(nickname);
     }
 
-    // 최초 회원 등록
+    /**
+     * 최초 회원 등록, social 아이디로 멤버 여부 확인함
+     *
+     * @param socialId
+     * @param socialType
+     * @return social 아이디가 있으면 기존 멤버 반환, 없으면 새 멤버 생성 후 반환
+     */
     public Member registerIFNew(String socialId, Member.SocialType socialType) {
         return memberRepository
                 .findBySocialId(socialId)
@@ -65,5 +71,15 @@ public class MemberService {
                                                 .socialId(socialId)
                                                 .socialType(socialType)
                                                 .build()));
+    }
+
+    @Transactional
+    public void deleteMember(UUID MemberId) {
+        Member member =
+                memberRepository
+                        .findById(MemberId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        memberRepository.delete(member);
     }
 }

@@ -3,9 +3,12 @@ package com.advent.backend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.advent.backend.common.error.ErrorCode;
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.entity.Member;
 import com.advent.backend.repository.MemberRepository;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,5 +112,27 @@ public class MemberServiceTest {
 
         assertThat(memberA.getId()).isEqualTo(existingMember.getId());
         assertThat(memberA.getSocialId()).isEqualTo(existingMember.getSocialId());
+    }
+
+    @Test
+    @DisplayName("memberId로 조회한 멤버를 삭제한다.")
+    public void should_deleteMember() {
+        memberService.deleteMember(memberA.getId());
+
+        Optional<Member> deletedMember = memberRepository.findById(memberA.getId());
+        assertThat(deletedMember).isEmpty();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 회원을 삭제하려고 하면 예외가 발생한다.")
+    public void should_TrowException_when_DeleteMember() {
+        UUID memberId = UUID.randomUUID();
+
+        assertThatThrownBy(
+                        () -> {
+                            memberService.deleteMember(memberId);
+                        })
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 }
