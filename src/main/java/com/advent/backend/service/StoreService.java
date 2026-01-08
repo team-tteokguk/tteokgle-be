@@ -1,0 +1,97 @@
+package com.advent.backend.service;
+
+import com.advent.backend.common.error.ErrorCode;
+import com.advent.backend.common.error.exception.BusinessException;
+import com.advent.backend.dto.ItemDto;
+import com.advent.backend.entity.*;
+import com.advent.backend.event.PurchaseEvent;
+import com.advent.backend.repository.*;
+import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class StoreService {
+    private final ItemRepository itemRepository;
+    private final MyTteokRepository myTteokRepository;
+    private final PointService pointService;
+    private final MyItemRepository myItemRepository;
+    private final MemberRepository memberRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
+
+    /** 물건을 구매 */
+    @Transactional
+    public void purchaseItem(UUID buyerId, UUID itemId) {
+        // 1. 구매할 아이템 확인
+        Item item =
+                itemRepository
+                        .findById(itemId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
+
+        // 2. 판매자 ID 조회
+        UUID sellerId = item.getStore().getMember().getId();
+
+        // 3. 데드락 방지를 위한 락 순서 결정 및 멤버 조회
+        UUID firstId = buyerId.compareTo(sellerId) < 0 ? buyerId : sellerId;
+        UUID secondId = buyerId.compareTo(sellerId) < 0 ? sellerId : buyerId;
+
+        memberRepository
+                .findByIdWithLock(firstId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        memberRepository
+                .findByIdWithLock(secondId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        Member buyer = memberRepository.findById(buyerId).get();
+        Member seller = memberRepository.findById(sellerId).get();
+
+        // 4. 구매자의 '나의 떡국' 확인
+        MyTteok receiverTteok =
+                myTteokRepository
+                        .findByMemberId(buyerId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.MYTTEOK_NOT_FOUND));
+
+        // 5. 돈 송금하기
+        pointService.transfer(buyer, seller, item.getId(), item.getCost(), item.getName());
+
+        // 6. MyItem 생성 후 내 떡국에 저장
+        saveMyItem(buyer, item, receiverTteok);
+
+        // 7. 성공 시 알림 이벤트 발행
+        applicationEventPublisher.publishEvent(new PurchaseEvent(buyer, seller, item.getName()));
+
+        // 8. 트랜잭션 성공 기록 생성
+        String txId = UUID.randomUUID().toString();
+
+        log.info("[TX_SUCCESS] ID: {}, buyer: {}, seller: {}", txId, buyer.getId(), seller.getId());
+    }
+
+    private void saveMyItem(Member buyer, Item item, MyTteok myTteok) {
+        MyItem myitem = MyItem.builder().member(buyer).item(item).tteok(myTteok).build();
+        myItemRepository.save(myitem);
+    }
+
+    /**
+     * 특정 상점의 물건을 페이지네이션으로 전달
+     *
+     * @return ItemDto
+     */
+    public List<ItemDto> getItems() {
+        return null;
+    }
+
+    /** 상점 주인이 가판대에 상품을 진열한다 (상품을 등록) */
+    public ItemDto publishItem() {
+        return null;
+    }
+
+    /** 상점 주인이 판매 중인 물건을 삭제 */
+    public void removeItem() {}
+}
