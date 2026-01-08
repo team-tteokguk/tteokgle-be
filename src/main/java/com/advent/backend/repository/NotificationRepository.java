@@ -1,7 +1,9 @@
 package com.advent.backend.repository;
 
+import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Notification;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -9,6 +11,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
+
+    // 내 알림 목록 조회
+    List<Notification> findAllByMemberOrderByCreatedAtDesc(Member member);
+
     // 한번에 알림 읽음 메소드
     @Transactional
     @Modifying(clearAutomatically = true)
