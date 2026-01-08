@@ -113,7 +113,7 @@ public class StoreService {
                                 .name(request.getName())
                                 .imageUrl(request.getImageUrl())
                                 .contentType(request.getContentType())
-                                .contentData(request.getContent())
+                                .contentData(request.getMediaUrl())
                                 .content(request.getContent())
                                 .cost(100) // TODO: 가격 정책
                                 .build());

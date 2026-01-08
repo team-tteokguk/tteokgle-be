@@ -20,7 +20,7 @@ public class TtoekgukController {
             @Parameter(hidden = true) @RequestHeader("Authorization") String authorization) {
         ItemDto.PlacedItemResponse response =
                 ItemDto.PlacedItemResponse.builder()
-                        .id("item-uuid-1")
+                        .id(UUID.randomUUID())
                         .name("고명1")
                         .imageUrl(
                                 "https://i.pinimg.com/1200x/22/76/e5/2276e5e6c7f236b18c74600f3b72902a.jpg")
@@ -42,7 +42,7 @@ public class TtoekgukController {
             @Parameter(hidden = true) @RequestHeader("Authorization") String authorization) {
         ItemDto.UnplacedItemResponse response =
                 ItemDto.UnplacedItemResponse.builder()
-                        .id("item-uuid-2")
+                        .id(UUID.randomUUID())
                         .name("고명2")
                         .imageUrl("https://...")
                         .isRead(false)
@@ -59,7 +59,7 @@ public class TtoekgukController {
             @RequestBody ItemDto.ItemPlacementRequest request) {
         ItemDto.PlacedItemResponse response =
                 ItemDto.PlacedItemResponse.builder()
-                        .id("item-uuid-1")
+                        .id(UUID.randomUUID())
                         .name("고명1")
                         .imageUrl(
                                 "https://i.pinimg.com/1200x/22/76/e5/2276e5e6c7f236b18c74600f3b72902a.jpg")
@@ -78,7 +78,7 @@ public class TtoekgukController {
             @PathVariable UUID itemId) {
         ItemDto.ItemDetailResponse response =
                 ItemDto.ItemDetailResponse.builder()
-                        .id("item-uuid-1")
+                        .id(UUID.randomUUID())
                         .name("고명1")
                         .imageUrl(
                                 "https://i.pinimg.com/1200x/22/76/e5/2276e5e6c7f236b18c74600f3b72902a.jpg")

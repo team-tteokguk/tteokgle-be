@@ -10,6 +10,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ItemRepository extends JpaRepository<Item, UUID> {
 
     // 관리자용
+    List<Item> findAllByStoreId(UUID storeId);
+
+    // 상점 페이지 별로 아이템 확인하기
     Page<Item> findAllByStoreId(UUID storeId, Pageable pageable);
 
     // 고객용

@@ -99,6 +99,8 @@ public class ItemDto {
     // 1. [요청] 고명 정보 등록용
     @Getter
     @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class ItemCreateRequest {
         @Schema(description = "고명 이름")
         private String name;
