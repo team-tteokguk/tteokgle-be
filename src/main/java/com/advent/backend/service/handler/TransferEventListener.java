@@ -1,7 +1,7 @@
 package com.advent.backend.service.handler;
 
 import com.advent.backend.entity.Notification;
-import com.advent.backend.event.TransferEvent;
+import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,13 +21,8 @@ public class TransferEventListener {
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleTransferSuccess(TransferEvent event) {
-        // 성공 로그 작성
-        log.info(
-                "[TX_SUCCESS] ID: {}, Sender: {}, Receiver: {}",
-                event.txId(),
-                event.sender().getId(),
-                event.receiver().getId());
+    public void handleTransferSuccess(PurchaseEvent event) {
+
         try {
             // 알림 발송
             notificationRepository.save(

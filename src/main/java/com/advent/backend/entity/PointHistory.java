@@ -32,9 +32,8 @@ public class PointHistory extends BaseTimeEntity {
     @JoinColumn(name = "sender_id")
     private Member sender;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "target_id")
+    private UUID targetId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trade_type", nullable = false)
@@ -44,11 +43,11 @@ public class PointHistory extends BaseTimeEntity {
     private Integer amount;
 
     public static PointHistory create(
-            Member receiver, Member sender, Item item, TradeType tradeType, Integer amount) {
+            Member receiver, Member sender, UUID targetId, TradeType tradeType, Integer amount) {
         return PointHistory.builder()
                 .receiver(receiver)
                 .sender(sender)
-                .item(item)
+                .targetId(targetId)
                 .tradeType(tradeType)
                 .amount(amount)
                 .build();
