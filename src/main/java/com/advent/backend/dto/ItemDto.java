@@ -2,6 +2,7 @@ package com.advent.backend.dto;
 
 import com.advent.backend.entity.Item;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +17,7 @@ public class ItemDto {
     @AllArgsConstructor
     public abstract static class ItemBase {
         @Schema(description = "고명 ID")
-        private String id;
+        private UUID id;
 
         @Schema(description = "고명 이름")
         private String name;
@@ -37,6 +38,16 @@ public class ItemDto {
 
         @Schema(description = "판매 수량")
         private int sellCounts;
+
+        public static StoreItemResponse from(Item item) {
+            return StoreItemResponse.builder()
+                    .id(item.getId())
+                    .name(item.getName())
+                    .imageUrl(item.getImageUrl())
+                    .cost(item.getCost())
+                    .sellCounts(item.getQuantity())
+                    .build();
+        }
     }
 
     // 2. [응답] 나의 떡국용 배치된 고명 정보 조회

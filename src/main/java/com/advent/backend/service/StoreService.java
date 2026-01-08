@@ -6,23 +6,27 @@ import com.advent.backend.dto.ItemDto;
 import com.advent.backend.entity.*;
 import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.repository.*;
-import jakarta.transaction.Transactional;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StoreService {
+    private final StoreRepository storeRepository;
     private final ItemRepository itemRepository;
     private final MyTteokRepository myTteokRepository;
-    private final PointService pointService;
     private final MyItemRepository myItemRepository;
     private final MemberRepository memberRepository;
+    private final SubscriptionRepository subscriptionRepository;
+
+    private final PointService pointService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     /** 물건을 구매 */
@@ -81,17 +85,70 @@ public class StoreService {
     /**
      * 특정 상점의 물건을 페이지네이션으로 전달
      *
-     * @return ItemDto
+     * @return ItemDto.StoreItemResponse
      */
-    public List<ItemDto> getItems() {
-        return null;
+    @Transactional(readOnly = true)
+    public Page<ItemDto.StoreItemResponse> getItems(UUID storeId, Pageable pageable) {
+        storeRepository
+                .findById(storeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        Page<Item> itemPage = itemRepository.findAllByStoreId(storeId, pageable);
+
+        return itemPage.map(ItemDto.StoreItemResponse::from);
     }
 
     /** 상점 주인이 가판대에 상품을 진열한다 (상품을 등록) */
-    public ItemDto publishItem() {
-        return null;
+    @Transactional
+    public ItemDto.StoreItemResponse publishItem(UUID storeId, ItemDto.ItemCreateRequest request) {
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        Item savedItem =
+                itemRepository.save(
+                        Item.builder()
+                                .store(store)
+                                .name(request.getName())
+                                .imageUrl(request.getImageUrl())
+                                .contentType(request.getContentType())
+                                .contentData(request.getContent())
+                                .content(request.getContent())
+                                .cost(100) // TODO: 가격 정책
+                                .build());
+
+        return ItemDto.StoreItemResponse.from(savedItem);
     }
 
     /** 상점 주인이 판매 중인 물건을 삭제 */
-    public void removeItem() {}
+    @Transactional
+    public void removeItem(UUID storeId, UUID itemId) {
+        storeRepository
+                .findById(storeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        Item item =
+                itemRepository
+                        .findById(itemId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
+
+        itemRepository.delete(item);
+    }
+
+    /** 상점 주인을 즐겨찾기에 추가 */
+    public void addSubscription(UUID storeId, UUID subscriberId) {
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        Member subscriber =
+                memberRepository
+                        .findById(subscriberId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        subscriptionRepository.save(
+                Subscription.builder().isNotificated(true).member(subscriber).store(store).build());
+    }
 }

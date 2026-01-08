@@ -2,14 +2,14 @@ package com.advent.backend.entity;
 
 import jakarta.persistence.*;
 import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 // 구독
 @Entity
 @Table(name = "subscriptions")
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Subscription extends BaseTimeEntity {
     // 구독 ID
