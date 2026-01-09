@@ -1,6 +1,8 @@
 package com.advent.backend.dto;
 
+import com.advent.backend.entity.Store;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 import lombok.*;
 
 public class StoreDto {
@@ -10,9 +12,13 @@ public class StoreDto {
     @AllArgsConstructor
     public static class StoreResponse {
         @Schema(description = "상점 ID")
-        private String id;
+        private UUID id;
 
         @Schema(description = "상점 이름")
         private String name;
+
+        public static StoreResponse from(Store store) {
+            return StoreResponse.builder().id(store.getId()).name(store.getTitle()).build();
+        }
     }
 }

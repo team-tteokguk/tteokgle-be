@@ -3,6 +3,7 @@ package com.advent.backend.service;
 import com.advent.backend.common.error.ErrorCode;
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.dto.ItemDto;
+import com.advent.backend.dto.StoreDto;
 import com.advent.backend.entity.*;
 import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.repository.*;
@@ -80,6 +81,17 @@ public class StoreService {
     private void saveMyItem(Member buyer, Item item, MyTteok myTteok) {
         MyItem myitem = MyItem.builder().member(buyer).item(item).tteok(myTteok).build();
         myItemRepository.save(myitem);
+    }
+
+    /** 상점 정보 조회 */
+    @Transactional(readOnly = true)
+    public StoreDto.StoreResponse getStoreInfo(UUID storeId) {
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        return StoreDto.StoreResponse.from(store);
     }
 
     /**
