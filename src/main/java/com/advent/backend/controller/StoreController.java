@@ -29,11 +29,8 @@ public class StoreController {
     // 1. 상점 정보 불러오기
     @Operation(summary = "상점 정보", description = "특정 상점의 정보를 불러옵니다.")
     @GetMapping("/{storeId}")
-    public ResponseEntity<StoreDto.StoreResponse> getStoreInfo(@PathVariable String storeId) {
-        StoreDto.StoreResponse response =
-                StoreDto.StoreResponse.builder().id(storeId).name("외요네 떡국").build();
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<StoreDto.StoreResponse> getStoreInfo(@PathVariable UUID storeId) {
+        return ResponseEntity.ok(storeService.getStoreInfo(storeId));
     }
 
     // 2. 고명 리스트 조회하기
@@ -51,7 +48,6 @@ public class StoreController {
     public ResponseEntity<ItemDto.StoreItemResponse> createItem(
             @PathVariable UUID storeId, @RequestBody ItemDto.ItemCreateRequest itemCreateRequest) {
         ItemDto.StoreItemResponse item = storeService.publishItem(storeId, itemCreateRequest);
-
         return ResponseEntity.ok(item);
     }
 
@@ -60,7 +56,6 @@ public class StoreController {
     @DeleteMapping("/{storeId}/items/{itemId}")
     public ResponseEntity<Void> deleteItem(@PathVariable UUID storeId, @PathVariable UUID itemId) {
         storeService.removeItem(storeId, itemId);
-
         return ResponseEntity.noContent().build();
     }
 
