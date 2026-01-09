@@ -1,6 +1,5 @@
 package com.advent.backend.listener;
 
-import com.advent.backend.entity.Notification;
 import com.advent.backend.event.CommentEvent;
 import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.event.SubscribeEvent;
@@ -16,86 +15,54 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class NotificationEventListener {
 
-    private NotificationService notificationService;
+    // [수정] final 키워드 필수! (그래야 의존성 주입이 됨)
+    private final NotificationService notificationService;
 
-    /**
-     * 송금 트랜잭션 커밋(성공) 후에만 실행
-     *
-     * @param event
-     */
+    /** 송금(구매) 알림 PurchaseEvent(Member sender, Member receiver, String itemName, ...) */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleNotification(PurchaseEvent event) {
+    public void handlePurchaseEvent(PurchaseEvent event) {
         log.info(
-                "[알림] 송금 트랜잭션 : Sender: {}, Receiver: {}",
+                "[알림] 구매 발생: {} -> {} (상품: {})",
                 event.sender().getNickname(),
-                event.receiver().getNickname());
+                event.receiver().getNickname(),
+                event.itemName());
 
-        String message =
-                String.format(
-                        "%s님이 %s을(를) 구미했습니다!", event.sender().getNickname(), event.itemName());
-
-        // TODO: 나중에 링크 수정
-        String link = "/link";
-
-        notificationService.createNotification(
-                event.receiver(), Notification.NotificationType.SALE, message, link);
+        // 서비스의 전용 메서드 호출
+        notificationService.sendSaleNotification(
+                event.receiver(), // 판매자 (알림 받을 사람)
+                event.sender().getNickname(), // 구매자 닉네임
+                event.itemName() // 상품명
+                );
     }
 
-    /**
-     * 방명록 댓글 알림
-     *
-     * @param event
-     */
+    /** 방명록 댓글 알림 CommentEvent(Member commenter, Member owner, GuestBook guestBook) */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleCommentEvnet(CommentEvent event) {
+    public void handleCommentEvent(CommentEvent event) {
         log.info(
-                "[알림] 댓글 이벤트 : {} -> {}",
+                "[알림] 댓글 발생: {} -> {}",
                 event.commenter().getNickname(),
                 event.owner().getNickname());
 
-        String message =
-                String.format(
-                        "%s님이 방명록에 글을 남겼어요: \"%s\"",
-                        event.commenter().getNickname(), truncate(event.comment(), 10));
-
-        notificationService.createNotification(
-                event.owner(),
-                Notification.NotificationType.COMMENT,
-                message,
-                "/my-store/guestbook");
+        // 방명록이 달린 상점 ID 추출
+        // (GuestBook 엔티티를 통해 Store ID를 가져옵니다)
+        notificationService.sendCommentNotification(
+                event.owner(), // 상점 주인 (알림 받을 사람)
+                event.commenter().getNickname(), // 작성자 닉네임
+                event.guestBook().getStore().getId() // 상점 ID (링크 생성용)
+                );
     }
 
-    /**
-     * 구독 알림
-     *
-     * @param event
-     */
+    /** 구독 알림 SubscribeEvent(Member subscriber, Member target) */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleSubscribeEvent(SubscribeEvent event) {
         log.info(
-                "[알림] 구독 이벤트: {} -> {}",
+                "[알림] 구독 발생: {} -> {}",
                 event.subscriber().getNickname(),
                 event.target().getNickname());
 
-        String message =
-                String.format("%s님이 내 상점을 구독하기 시작했습니다.🎉", event.subscriber().getNickname());
-
-        notificationService.createNotification(
-                event.target(),
-                Notification.NotificationType.SUBSCRIBE,
-                message,
-                "/my-page/followers");
-    }
-
-    /**
-     * 문자열 자르기 유틸
-     *
-     * @param content
-     * @param limit
-     * @return
-     */
-    private String truncate(String content, int limit) {
-        if (content == null) return "";
-        return content.length() > limit ? content.substring(0, limit) + "..." : content;
+        notificationService.sendSubscribeNotification(
+                event.target(), // 구독 당한 사람 (알림 받을 사람)
+                event.subscriber().getNickname() // 구독한 사람 닉네임
+                );
     }
 }
