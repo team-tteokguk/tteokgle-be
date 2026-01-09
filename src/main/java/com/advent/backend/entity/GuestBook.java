@@ -3,6 +3,7 @@ package com.advent.backend.entity;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 // 방명록
 @Entity
@@ -10,7 +11,7 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class GuestBook extends BaseTimeEntity {
     // 방명록 ID
     @Id

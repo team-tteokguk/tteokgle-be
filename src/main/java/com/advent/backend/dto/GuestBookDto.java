@@ -35,6 +35,7 @@ public class GuestBookDto {
     // 2. [요청] 방명록 등록
     @Getter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class GuestBookRequest {
         @Schema(description = "방명록 내용")
         private String content;
