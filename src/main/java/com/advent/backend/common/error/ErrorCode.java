@@ -26,6 +26,9 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(404, "M001", "존재하지 않는 사용자입니다."),
     MYTTEOK_NOT_FOUND(404, "M002", "존재하지 않는 떡국입니다."),
 
+    // 상점 유효성
+    STORE_NOT_FOUND(404, "M002", "존재하지 않는 상점입니다."),
+
     // 비지니스 충돌
     DUPLICATE_NICKNAME(409, "M003", "이미 존재하는 닉네임입니다."),
 

@@ -1,9 +1,11 @@
 package com.advent.backend.service;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 
 import com.advent.backend.common.error.exception.BusinessException;
+import com.advent.backend.dto.ItemDto;
 import com.advent.backend.entity.*;
 import com.advent.backend.repository.*;
 import java.util.List;
@@ -18,6 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -30,8 +36,8 @@ public class StoreServiceTest {
     @Autowired private ItemRepository itemRepository;
     @Autowired private MyTteokRepository myTteokRepository;
     @MockitoSpyBean private MyItemRepository myItemRepository;
-    //    @MockitoBean private MyItemRepository MockmyItemRepository;
     @Autowired private PointHistoryRepository pointHistoryRepository;
+    @Autowired private SubscriptionRepository subscriptionRepository;
 
     @MockitoBean private NotificationRepository notificationRepository;
 
@@ -380,5 +386,86 @@ public class StoreServiceTest {
         assertThat(history.getReceiver().getId()).isEqualTo(receiverId);
         assertThat(history.getTargetId()).isEqualTo(targetId);
         assertThat(history.getTradeType()).isEqualTo(PointHistory.TradeType.USE);
+    }
+
+    @Test
+    @DisplayName("상점 물건 조회")
+    public void should_ReturnListOfItems() {
+        // 상점에 물건 등록
+        for (int i = 0; i < 9; i++) {
+            Item item =
+                    Item.builder()
+                            .store(storeA)
+                            .name("이름")
+                            .imageUrl("이미지 url")
+                            .cost(ITEM_COSTA)
+                            .contentType(Item.ContentType.NONE)
+                            .contentData("{}")
+                            .content("내용")
+                            .isAvailable(true)
+                            .build();
+
+            itemRepository.save(item);
+        }
+
+        Pageable pageable = PageRequest.of(0, 2, Sort.by("createdAt").descending());
+
+        Page<ItemDto.StoreItemResponse> result = storeService.getItems(storeA.getId(), pageable);
+
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(10);
+        assertThat(result.getTotalPages()).isEqualTo(5);
+        assertThat(result.getNumber()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("상품 진열")
+    public void should_PublishItem() {
+        ItemDto.ItemCreateRequest request =
+                ItemDto.ItemCreateRequest.builder()
+                        .name("고명")
+                        .mediaUrl("{}")
+                        .contentType(Item.ContentType.PHOTO)
+                        .content("f")
+                        .imageUrl("이미지")
+                        .build();
+
+        ItemDto.StoreItemResponse response = storeService.publishItem(storeA.getId(), request);
+
+        List<Item> itemList = itemRepository.findAllByStoreId(storeA.getId());
+
+        assertThat(itemList).isNotEmpty();
+
+        boolean exists = itemList.stream().anyMatch(item -> item.getId().equals(response.getId()));
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("상품 진열 삭제")
+    public void should_RemoveItem() {
+        storeService.removeItem(storeA.getId(), itemA.getId());
+
+        List<Item> itemList = itemRepository.findAllByStoreId(storeA.getId());
+
+        boolean exists = itemList.stream().anyMatch(item -> item.getId().equals(itemA.getId()));
+
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    @DisplayName("상점 즐겨찾기 추가")
+    public void should_AddSubscription() {
+        storeService.addSubscription(storeA.getId(), memberB.getId());
+
+        Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
+
+        Page<Subscription> result =
+                subscriptionRepository.findAllByMemberId(memberB.getId(), pageable);
+
+        Subscription subscription = result.getContent().get(0);
+
+        assertThat(subscription).isNotNull();
+        assertThat(subscription.getStore().getId()).isEqualTo(storeA.getId());
+        assertThat(subscription.getMember().getId()).isEqualTo(memberB.getId());
     }
 }
