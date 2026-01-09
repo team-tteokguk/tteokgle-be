@@ -26,7 +26,7 @@ public class MemberServiceUnitTest {
 
         Assertions.assertDoesNotThrow(
                 () -> {
-                    memberService.isNicknameValid(validName);
+                    memberService.validateNickname(validName);
                 });
     }
 
@@ -36,21 +36,21 @@ public class MemberServiceUnitTest {
         // 1. 너무 짧은 이름 (1자)
         org.assertj.core.api.Assertions.assertThatThrownBy(
                         () -> {
-                            memberService.isNicknameValid("욍");
+                            memberService.validateNickname("욍");
                         })
                 .isInstanceOf(BusinessException.class);
 
         // 2. 너무 긴 이름 (12자 초과)
         org.assertj.core.api.Assertions.assertThatThrownBy(
                         () -> {
-                            memberService.isNicknameValid("외요외요외요외요외요외요외요외요외요");
+                            memberService.validateNickname("외요외요외요외요외요외요외요외요외요");
                         })
                 .isInstanceOf(BusinessException.class);
 
         // 3. 금지어 포함
         org.assertj.core.api.Assertions.assertThatThrownBy(
                         () -> {
-                            memberService.isNicknameValid("관리자");
+                            memberService.validateNickname("관리자");
                         })
                 .isInstanceOf(BusinessException.class);
 
@@ -59,7 +59,7 @@ public class MemberServiceUnitTest {
         given(memberRepository.existsByNickname(duplicateName)).willReturn(true);
         org.assertj.core.api.Assertions.assertThatThrownBy(
                         () -> {
-                            memberService.isNicknameValid(duplicateName);
+                            memberService.validateNickname(duplicateName);
                         })
                 .isInstanceOf(BusinessException.class);
     }
