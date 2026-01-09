@@ -1,6 +1,7 @@
 package com.advent.backend.repository;
 
 import com.advent.backend.entity.Subscription;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,4 +18,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
      * @return
      */
     Page<Subscription> findAllByMemberId(UUID memberId, Pageable pageable);
+
+    boolean existsByMemberIdAndStoreId(UUID memberId, UUID storeId);
+
+    Optional<Subscription> findByMemberIdAndStoreId(UUID memberId, UUID storeId);
 }
