@@ -16,7 +16,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     /** 닉네임 중복 체크 */
-    public void isNicknameValid(String nickname) {
+    public void validateNickname(String nickname) {
         // 1. 길이 체크 (2 ~ 10자)
         if (nickname == null || nickname.length() > 12 || nickname.length() < 2) {
             throw new BusinessException(ErrorCode.INVALID_NICKNAME_LENGTH);
@@ -46,6 +46,8 @@ public class MemberService {
      */
     @Transactional
     public void updateNickName(UUID MemberId, String nickname) {
+        validateNickname(nickname);
+
         Member member =
                 memberRepository
                         .findById(MemberId)
