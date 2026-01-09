@@ -50,8 +50,7 @@ public class GuestBookService {
         guestBookRepository.save(guestBook);
 
         if (!store.getMember().getId().equals(writer.getId())) {
-            eventPublisher.publishEvent(
-                    new CommentEvent(writer, store.getMember(), guestBook.getContent()));
+            eventPublisher.publishEvent(new CommentEvent(writer, store.getMember(), guestBook));
         }
     }
 

@@ -92,7 +92,7 @@ class GuestBookServiceTest {
             CommentEvent event = eventCaptor.getValue();
             assertThat(event.commenter()).isEqualTo(guest);
             assertThat(event.owner()).isEqualTo(owner);
-            assertThat(event.comment()).isEqualTo(content);
+            assertThat(event.guestBook().getContent()).isEqualTo(content);
         }
 
         @Test
