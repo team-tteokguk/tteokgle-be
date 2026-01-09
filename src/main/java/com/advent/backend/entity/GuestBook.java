@@ -2,15 +2,15 @@ package com.advent.backend.entity;
 
 import jakarta.persistence.*;
 import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 // 방명록
 @Entity
 @Table(name = "guestbooks")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class GuestBook extends BaseTimeEntity {
     // 방명록 ID
     @Id
@@ -35,5 +35,9 @@ public class GuestBook extends BaseTimeEntity {
         guestBook.store = store;
         guestBook.content = content;
         return guestBook;
+    }
+
+    public void update(String content) {
+        this.content = content;
     }
 }
