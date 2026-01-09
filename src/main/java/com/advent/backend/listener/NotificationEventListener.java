@@ -2,8 +2,8 @@ package com.advent.backend.listener;
 
 import com.advent.backend.entity.Notification;
 import com.advent.backend.event.CommentEvent;
+import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.event.SubscribeEvent;
-import com.advent.backend.event.TransferEvent;
 import com.advent.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ public class NotificationEventListener {
      * @param event
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleNotification(TransferEvent event) {
+    public void handleNotification(PurchaseEvent event) {
         log.info(
                 "[알림] 송금 트랜잭션 : Sender: {}, Receiver: {}",
                 event.sender().getNickname(),
