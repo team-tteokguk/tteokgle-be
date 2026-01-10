@@ -3,18 +3,18 @@ package com.advent.backend.controller;
 import com.advent.backend.dto.GuestBookDto;
 import com.advent.backend.dto.ItemDto;
 import com.advent.backend.dto.StoreDto;
-import com.advent.backend.repository.StoreRepository;
+import com.advent.backend.security.CustomUserDetails;
+import com.advent.backend.service.GuestBookService;
 import com.advent.backend.service.StoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "상점 관리", description = "상점 정보 조회 및 고명 조회, 수정, 등록")
@@ -22,8 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/stores")
 @RequiredArgsConstructor
 public class StoreController {
-    private final StoreRepository storeRepository;
     private final StoreService storeService;
+    private final GuestBookService guestBookService;
 
     // 상점 API
     // 1. 상점 정보 불러오기
@@ -63,77 +63,47 @@ public class StoreController {
     // 1. 방명록 불러오기
     @Operation(summary = "방명록 불러오기", description = "특정 상점의 방명록을 불러옵니다.")
     @GetMapping("/{storeId}/guestbooks")
-    public ResponseEntity<List<GuestBookDto.GuestBookResponse>> getGuestBookInfo(
-            @PathVariable String storeId) {
-        GuestBookDto.GuestBookResponse guestbook1 =
-                GuestBookDto.GuestBookResponse.builder()
-                        .id("uuid")
-                        .writerId("wirterid")
-                        .writerNickname("외요")
-                        .writerImageUrl("외요의이미지")
-                        .content("외요야 네 상점 잘 봤어")
-                        .createdAt(LocalDateTime.now())
-                        .build();
+    public ResponseEntity<Slice<GuestBookDto.GuestBookResponse>> getGuestBookInfo(
+            @PathVariable UUID storeId, @PageableDefault(size = 10) Pageable pageable) {
+        guestBookService.getGuestBooks(storeId, pageable);
 
-        GuestBookDto.GuestBookResponse guestbook2 =
-                GuestBookDto.GuestBookResponse.builder()
-                        .id("uuid")
-                        .writerId("wirterid")
-                        .writerNickname("외요")
-                        .writerImageUrl("외요의이미지")
-                        .content("외요야 네 상점 잘 봤어")
-                        .createdAt(LocalDateTime.now())
-                        .build();
-
-        return ResponseEntity.ok(List.of(guestbook1, guestbook2));
+        // 추후 Slice
+        return ResponseEntity.ok().build();
     }
 
     // 2. 방명록 작성하기
     @Operation(summary = "방명록 작성하기")
     @PostMapping("/{storeId}/guestbooks")
     public ResponseEntity<GuestBookDto.GuestBookResponse> createGuestBook(
-            @PathVariable String storeId,
-            @RequestHeader("Member-Id") String memberId,
+            @PathVariable UUID storeId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestBody GuestBookDto.GuestBookRequest guestBookRequest) {
-        GuestBookDto.GuestBookResponse response =
-                GuestBookDto.GuestBookResponse.builder()
-                        .id("uuid")
-                        .writerId(memberId)
-                        .writerNickname("외요")
-                        .writerImageUrl("외요 이미지")
-                        .content(guestBookRequest.getContent())
-                        .createdAt(LocalDateTime.now())
-                        .build();
+        //        guestBookService.createGuestBook(storeId, customUserDetails.getMember(),
+        // guestBookRequest)
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().build();
     }
 
     // 3. 방명록 수정하기
     @Operation(summary = "방명록 수정하기")
     @PatchMapping("/{storeId}/guestbooks/{guestbookId}")
     public ResponseEntity<GuestBookDto.GuestBookResponse> updateGuestBook(
-            @PathVariable String storeId,
-            @PathVariable String guestbookId,
-            @RequestHeader("Member-Id") String memberId,
+            @PathVariable UUID guestbookId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestBody GuestBookDto.GuestBookRequest request) {
-        GuestBookDto.GuestBookResponse response =
-                GuestBookDto.GuestBookResponse.builder()
-                        .id(guestbookId)
-                        .writerId(memberId)
-                        .writerNickname("외요")
-                        .writerImageUrl("외요 이미지")
-                        .content(request.getContent())
-                        .createdAt(LocalDateTime.now())
-                        .build();
+        guestBookService.updateGuestBook(guestbookId, customUserDetails.getMember(), request);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().build();
     }
 
     // 4. 방명록 삭제하기
     @Operation(summary = "방명록 삭제하기")
     @DeleteMapping("/{storeId}/guestbooks/{guestbookId}")
     public ResponseEntity<Void> deleteGuestBook(
-            @PathVariable String storeId, @PathVariable String guestbookId) {
+            @PathVariable UUID guestbookId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        guestBookService.deleteGuestBook(guestbookId, customUserDetails.getMember());
+
         return ResponseEntity.noContent().build();
     }
 
