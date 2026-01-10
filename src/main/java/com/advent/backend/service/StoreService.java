@@ -106,9 +106,9 @@ public class StoreService {
      */
     @Transactional(readOnly = true)
     public Page<ItemDto.StoreItemResponse> getItems(UUID storeId, Pageable pageable) {
-        storeRepository
-                .findById(storeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+        if (!storeRepository.existsById(storeId)) {
+            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
+        }
 
         Page<Item> itemPage = itemRepository.findAllByStoreId(storeId, pageable);
 
@@ -141,13 +141,9 @@ public class StoreService {
     /** 상점 주인이 판매 중인 물건을 삭제 */
     @Transactional
     public void removeItem(UUID storeId, UUID itemId) {
-        storeRepository
-                .findById(storeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
-
         Item item =
                 itemRepository
-                        .findById(itemId)
+                        .findByStoreIdAndId(storeId, itemId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
 
         itemRepository.delete(item);

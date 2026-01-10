@@ -20,6 +20,9 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
                     + "where i.id = :itemId")
     Optional<Item> findItemWithSeller(@Param("itemId") UUID itemId);
 
+    // 아이템 조회 시 상점 존재 여부 + 상점과 아이템 매치 여부까지 확인
+    Optional<Item> findByStoreIdAndId(UUID storeId, UUID itemId);
+
     // 관리자용
     List<Item> findAllByStoreId(UUID storeId);
 
