@@ -11,8 +11,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,14 +105,14 @@ public class StoreService {
      * @return ItemDto.StoreItemResponse
      */
     @Transactional(readOnly = true)
-    public Page<ItemDto.StoreItemResponse> getItems(UUID storeId, Pageable pageable) {
+    public Slice<ItemDto.StoreItemResponse> getItems(UUID storeId, Pageable pageable) {
         if (!storeRepository.existsById(storeId)) {
             throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
         }
 
-        Page<Item> itemPage = itemRepository.findAllByStoreId(storeId, pageable);
+        Slice<Item> itemSlice = itemRepository.findAllByStoreId(storeId, pageable);
 
-        return itemPage.map(ItemDto.StoreItemResponse::from);
+        return itemSlice.map(ItemDto.StoreItemResponse::from);
     }
 
     /** 상점 주인이 가판대에 상품을 진열한다 (상품을 등록) */

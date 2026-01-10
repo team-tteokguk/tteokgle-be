@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +36,7 @@ public class StoreController {
     // 2. 고명 리스트 조회하기
     @Operation(summary = "고명 리스트 조회하기")
     @GetMapping("/{storeId}/items")
-    public ResponseEntity<Page<ItemDto.StoreItemResponse>> getItems(
+    public ResponseEntity<Slice<ItemDto.StoreItemResponse>> getItems(
             @PathVariable UUID storeId, @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(storeService.getItems(storeId, pageable));
     }
