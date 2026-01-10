@@ -20,10 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -410,11 +407,9 @@ public class StoreServiceTest {
 
         Pageable pageable = PageRequest.of(0, 2, Sort.by("createdAt").descending());
 
-        Page<ItemDto.StoreItemResponse> result = storeService.getItems(storeA.getId(), pageable);
+        Slice<ItemDto.StoreItemResponse> result = storeService.getItems(storeA.getId(), pageable);
 
         assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getTotalElements()).isEqualTo(10);
-        assertThat(result.getTotalPages()).isEqualTo(5);
         assertThat(result.getNumber()).isEqualTo(0);
     }
 
