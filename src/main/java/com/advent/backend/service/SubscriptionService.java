@@ -1,5 +1,7 @@
 package com.advent.backend.service;
 
+import com.advent.backend.common.error.ErrorCode;
+import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.dto.SubscriptionDto;
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Store;
@@ -30,19 +32,19 @@ public class SubscriptionService {
         Member member =
                 memberRepository
                         .findById(memberId)
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         Store store =
                 storeRepository
                         .findById(storeId)
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상점입니다."));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         if (store.getMember().getId().equals(member.getId())) {
-            throw new IllegalArgumentException("본인 상점은 구독할 수 없습니다.");
+            throw new BusinessException(ErrorCode.SELF_SUBSCRIPTION_NOT_ALLOWED);
         }
 
         if (subscriptionRepository.existsByMemberIdAndStoreId(memberId, storeId)) {
-            throw new IllegalArgumentException("이미 구독 중인 상점입니다.");
+            throw new BusinessException(ErrorCode.ALREADY_SUBSCRIBED);
         }
 
         Subscription subscription =
@@ -58,7 +60,7 @@ public class SubscriptionService {
         Subscription subscription =
                 subscriptionRepository
                         .findByMemberIdAndStoreId(memberId, storeId)
-                        .orElseThrow(() -> new IllegalArgumentException("구독 정보를 찾을 수 없습니다."));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
 
         subscriptionRepository.delete(subscription);
     }
