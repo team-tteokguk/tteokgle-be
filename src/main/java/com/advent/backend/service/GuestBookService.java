@@ -83,7 +83,7 @@ public class GuestBookService {
         GuestBook guestBook =
                 guestBookRepository
                         .findById(guestBookId)
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 방명록입니다."));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.GUESTBOOK_NOT_FOUND));
 
         validateWriter(guestBook, member);
 
@@ -96,7 +96,7 @@ public class GuestBookService {
         GuestBook guestBook =
                 guestBookRepository
                         .findById(guestBookId)
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 방명록입니다."));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.GUESTBOOK_NOT_FOUND));
 
         validateWriter(guestBook, member);
 
@@ -111,7 +111,7 @@ public class GuestBookService {
      */
     private void validateWriter(GuestBook guestBook, Member member) {
         if (!guestBook.getMember().getId().equals(member.getId())) {
-            throw new IllegalArgumentException("작성자만 수정/삭제할 수 있습니다.");
+            throw new BusinessException(ErrorCode.NOT_GUESTBOOK_WRITER);
         }
     }
 

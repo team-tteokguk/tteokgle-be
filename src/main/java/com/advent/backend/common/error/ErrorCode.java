@@ -34,6 +34,10 @@ public enum ErrorCode {
     ALREADY_SUBSCRIBED(409, "S003", "이미 구독 중인 상점입니다."),
     SUBSCRIPTION_NOT_FOUND(404, "S004", "구독 정보를 찾을 수 없습니다."),
 
+    // 방명록 유효성
+    GUESTBOOK_NOT_FOUND(404, "G001", "존재하지 않는 방명록입니다."),
+    NOT_GUESTBOOK_WRITER(403, "G002", "작성자만 수정/삭제할 수 있습니다."),
+
     // 알림 유효성
     NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),
 
