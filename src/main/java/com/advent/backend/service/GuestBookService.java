@@ -1,5 +1,7 @@
 package com.advent.backend.service;
 
+import com.advent.backend.common.error.ErrorCode;
+import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.dto.GuestBookDto;
 import com.advent.backend.entity.GuestBook;
 import com.advent.backend.entity.Member;
@@ -38,7 +40,7 @@ public class GuestBookService {
         Store store =
                 storeRepository
                         .findById(storeId)
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상점입니다."));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         GuestBook guestBook =
                 GuestBook.builder()
