@@ -446,21 +446,4 @@ public class StoreServiceTest {
 
         assertThat(exists).isFalse();
     }
-
-    @Test
-    @DisplayName("상점 즐겨찾기 추가")
-    public void should_AddSubscription() {
-        storeService.addSubscription(storeA.getId(), memberB.getId());
-
-        Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
-
-        Page<Subscription> result =
-                subscriptionRepository.findAllByMemberId(memberB.getId(), pageable);
-
-        Subscription subscription = result.getContent().get(0);
-
-        assertThat(subscription).isNotNull();
-        assertThat(subscription.getStore().getId()).isEqualTo(storeA.getId());
-        assertThat(subscription.getMember().getId()).isEqualTo(memberB.getId());
-    }
 }

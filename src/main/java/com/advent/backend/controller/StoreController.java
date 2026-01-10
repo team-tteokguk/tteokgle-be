@@ -6,6 +6,7 @@ import com.advent.backend.dto.StoreDto;
 import com.advent.backend.security.CustomUserDetails;
 import com.advent.backend.service.GuestBookService;
 import com.advent.backend.service.StoreService;
+import com.advent.backend.service.SubscriptionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class StoreController {
     private final StoreService storeService;
     private final GuestBookService guestBookService;
+    private final SubscriptionService subscriptionService;
 
     // 상점 API
     // 1. 상점 정보 불러오기
@@ -108,11 +110,37 @@ public class StoreController {
     }
 
     // 즐겨찾기
+    /**
+     * 즐겨찾기에 추가 (구독 추가)
+     *
+     * @param storeId
+     * @param customUserDetails
+     * @return
+     */
     @Operation(summary = "즐겨찾기 추가하기")
     @PostMapping("/{storeId}/subscription")
-    public ResponseEntity<Void> addSubscription(
-            @PathVariable UUID storeId, @RequestHeader("Member-Id") UUID memberId) {
-        storeService.addSubscription(storeId, memberId);
+    public ResponseEntity<Void> subscribe(
+            @PathVariable UUID storeId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        subscriptionService.subscribe(customUserDetails.getMember().getId(), storeId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 즐겨찾기에서 삭제 (구독 해제)
+     *
+     * @param storeId
+     * @param customUserDetails
+     * @return
+     */
+    @Operation(summary = "즐겨찾기 삭제하기")
+    @DeleteMapping("/{storeId}/subscription")
+    public ResponseEntity<Void> unSubscribe(
+            @PathVariable UUID storeId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        subscriptionService.unsubscribe(customUserDetails.getMember().getId(), storeId);
+
         return ResponseEntity.noContent().build();
     }
 }

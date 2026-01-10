@@ -148,24 +148,4 @@ public class StoreService {
 
         itemRepository.delete(item);
     }
-
-    /** 상점 주인을 즐겨찾기에 추가 */
-    public void addSubscription(UUID storeId, UUID subscriberId) {
-        Store store =
-                storeRepository
-                        .findById(storeId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
-
-        Member subscriber =
-                memberRepository
-                        .findById(subscriberId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-
-        subscriptionRepository.save(
-                Subscription.builder()
-                        .isNotificated(true) // TODO: 알림 정책 추가
-                        .member(subscriber)
-                        .store(store)
-                        .build());
-    }
 }
