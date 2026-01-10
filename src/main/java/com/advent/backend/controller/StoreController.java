@@ -109,7 +109,7 @@ public class StoreController {
         return ResponseEntity.noContent().build();
     }
 
-    // 즐겨찾기
+    // 즐겨찾기 API
     /**
      * 즐겨찾기에 추가 (구독 추가)
      *

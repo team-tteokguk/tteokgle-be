@@ -6,6 +6,7 @@ import com.advent.backend.security.CustomUserDetails;
 import com.advent.backend.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +14,10 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "회원 관리", description = "내 정보 조회, 닉네임 변경, 회원 탈퇴")
 @RestController
 @RequestMapping("/members")
+@RequiredArgsConstructor
 public class MemberController {
 
     private final MemberService memberService;
-
-    public MemberController(MemberService memberService) {
-        this.memberService = memberService;
-    }
 
     @Operation(summary = "닉네임 유효성 검사", description = "회원 가입 전 닉네임 생성을 위해 닉네임 유효성 검사를 진행합니다.")
     @PostMapping("/nickname")
