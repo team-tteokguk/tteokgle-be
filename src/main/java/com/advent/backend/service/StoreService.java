@@ -46,16 +46,21 @@ public class StoreService {
         UUID firstId = buyerId.compareTo(sellerId) < 0 ? buyerId : sellerId;
         UUID secondId = buyerId.compareTo(sellerId) < 0 ? sellerId : buyerId;
 
-        memberRepository
-                .findByIdWithLock(firstId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        Member first =
+                memberRepository
+                        .findByIdWithLock(firstId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        memberRepository
-                .findByIdWithLock(secondId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        Member second =
+                (firstId.equals(secondId))
+                        ? first
+                        : memberRepository
+                                .findByIdWithLock(secondId)
+                                .orElseThrow(
+                                        () -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        Member buyer = memberRepository.findById(buyerId).get();
-        Member seller = memberRepository.findById(sellerId).get();
+        Member buyer = buyerId.equals(firstId) ? first : second;
+        Member seller = sellerId.equals(firstId) ? first : second;
 
         // 4. 구매자의 '나의 떡국' 확인
         MyTteok receiverTteok =
@@ -161,6 +166,10 @@ public class StoreService {
                         .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         subscriptionRepository.save(
-                Subscription.builder().isNotificated(true).member(subscriber).store(store).build());
+                Subscription.builder()
+                        .isNotificated(true) // TODO: 알림 정책 추가
+                        .member(subscriber)
+                        .store(store)
+                        .build());
     }
 }
