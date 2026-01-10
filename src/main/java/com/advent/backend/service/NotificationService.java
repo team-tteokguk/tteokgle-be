@@ -1,5 +1,7 @@
 package com.advent.backend.service;
 
+import com.advent.backend.common.error.ErrorCode;
+import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Notification;
 import com.advent.backend.repository.NotificationRepository;
@@ -115,7 +117,7 @@ public class NotificationService {
         Notification notification =
                 notificationRepository
                         .findById(notificationId)
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 알림입니다."));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
 
         notification.read();
     }

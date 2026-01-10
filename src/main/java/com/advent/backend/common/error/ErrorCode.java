@@ -34,6 +34,9 @@ public enum ErrorCode {
     ALREADY_SUBSCRIBED(409, "S003", "이미 구독 중인 상점입니다."),
     SUBSCRIPTION_NOT_FOUND(404, "S004", "구독 정보를 찾을 수 없습니다."),
 
+    // 알림 유효성
+    NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),
+
     // 비지니스 충돌
     DUPLICATE_NICKNAME(409, "M003", "이미 존재하는 닉네임입니다."),
 
