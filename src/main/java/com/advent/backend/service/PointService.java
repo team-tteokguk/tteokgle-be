@@ -2,8 +2,9 @@ package com.advent.backend.service;
 
 import com.advent.backend.common.error.ErrorCode;
 import com.advent.backend.common.error.exception.BusinessException;
-import com.advent.backend.entity.*;
-import com.advent.backend.repository.*;
+import com.advent.backend.entity.Member;
+import com.advent.backend.entity.PointHistory;
+import com.advent.backend.repository.PointHistoryRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
