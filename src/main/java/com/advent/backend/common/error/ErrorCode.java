@@ -28,6 +28,11 @@ public enum ErrorCode {
 
     // 상점 유효성
     STORE_NOT_FOUND(404, "M002", "존재하지 않는 상점입니다."),
+    SELF_SUBSCRIPTION_NOT_ALLOWED(400, "S002", "본인 상점은 구독할 수 없습니다."),
+
+    // 구독
+    ALREADY_SUBSCRIBED(409, "S003", "이미 구독 중인 상점입니다."),
+    SUBSCRIPTION_NOT_FOUND(404, "S004", "구독 정보를 찾을 수 없습니다."),
 
     // 비지니스 충돌
     DUPLICATE_NICKNAME(409, "M003", "이미 존재하는 닉네임입니다."),
