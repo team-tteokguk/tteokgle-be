@@ -3,8 +3,8 @@ package com.advent.backend.repository;
 import com.advent.backend.entity.Subscription;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +17,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
      * @param pageable
      * @return
      */
-    Page<Subscription> findAllByMemberId(UUID memberId, Pageable pageable);
+    Slice<Subscription> findAllByMemberId(UUID memberId, Pageable pageable);
 
     boolean existsByMemberIdAndStoreId(UUID memberId, UUID storeId);
 

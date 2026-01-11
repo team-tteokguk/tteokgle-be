@@ -13,8 +13,8 @@ import com.advent.backend.repository.StoreRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +64,7 @@ public class GuestBookService {
      * @return
      */
     @Transactional(readOnly = true)
-    public Page<GuestBookDto.GuestBookResponse> getGuestBooks(UUID storeId, Pageable pageable) {
+    public Slice<GuestBookDto.GuestBookResponse> getGuestBooks(UUID storeId, Pageable pageable) {
         return guestBookRepository
                 .findAllByStoreIdWithMember(storeId, pageable)
                 .map(this::converToResponse);
