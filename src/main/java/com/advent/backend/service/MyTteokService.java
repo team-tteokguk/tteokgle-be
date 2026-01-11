@@ -3,6 +3,7 @@ package com.advent.backend.service;
 import com.advent.backend.common.error.ErrorCode;
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.dto.ItemDto;
+import com.advent.backend.entity.Item;
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.MyItem;
 import com.advent.backend.entity.MyTteok;
@@ -144,6 +145,28 @@ public class MyTteokService {
         return myTteokRepository
                 .findByMemberId(member.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.TTEOKGUK_NOT_FOUND));
+    }
+
+    /**
+     * 고명 획득 유저에게 새로운 고명을 생성하여 저장
+     *
+     * @param member
+     * @param item
+     * @return
+     */
+    public MyItem addItem(Member member, Item item) {
+        MyTteok myTteok = getMyTteokOrThrow(member);
+
+        MyItem newMyItem =
+                MyItem.builder()
+                        .member(member)
+                        .tteok(myTteok)
+                        .item(item)
+                        .isUsed(false)
+                        .isRead(false)
+                        .build();
+
+        return myItemRepository.save(newMyItem);
     }
 
     /**
