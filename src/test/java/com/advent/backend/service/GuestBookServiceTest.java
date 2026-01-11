@@ -7,6 +7,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
+import com.advent.backend.common.error.ErrorCode;
+import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.dto.GuestBookDto;
 import com.advent.backend.entity.GuestBook;
 import com.advent.backend.entity.Member;
@@ -28,10 +30,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("GuestBookService 단위 테스트")
@@ -118,8 +117,9 @@ class GuestBookServiceTest {
 
             assertThatThrownBy(
                             () -> guestBookService.createGuestBook(invalidStoreId, guest, request))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("존재하지 않는 상점");
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.STORE_NOT_FOUND);
 
             then(guestBookRepository).should(never()).save(any());
             then(eventPublisher).should(never()).publishEvent(any());
@@ -150,17 +150,17 @@ class GuestBookServiceTest {
                             .build();
 
             Pageable pageable = PageRequest.of(0, 10);
-            Page<GuestBook> guestBookPage =
-                    new PageImpl<>(Arrays.asList(guestBook1, guestBook2), pageable, 2);
+            Slice<GuestBook> guestBookSlice =
+                    new SliceImpl<>(Arrays.asList(guestBook1, guestBook2), pageable, true);
 
             given(guestBookRepository.findAllByStoreIdWithMember(storeId, pageable))
-                    .willReturn(guestBookPage);
+                    .willReturn(guestBookSlice);
 
-            Page<GuestBookDto.GuestBookResponse> result =
+            Slice<GuestBookDto.GuestBookResponse> result =
                     guestBookService.getGuestBooks(storeId, pageable);
 
             assertThat(result).isNotNull();
-            assertThat(result.getTotalElements()).isEqualTo(2);
+            assertThat(result.hasNext()).isTrue();
             assertThat(result.getContent()).hasSize(2);
             assertThat(result.getContent().get(0).getContent()).isEqualTo("첫번째 방명록");
             assertThat(result.getContent().get(0).getWriterNickname()).isEqualTo("방문손님");
@@ -173,16 +173,16 @@ class GuestBookServiceTest {
         @DisplayName("방명록이 없는 상점은 빈 페이지를 반환한다")
         void getGuestBooks_EmptyStore_ReturnsEmptyPage() {
             Pageable pageable = PageRequest.of(0, 10);
-            Page<GuestBook> emptyPage = Page.empty(pageable);
+            Slice<GuestBook> emptyPage = Page.empty(pageable);
 
             given(guestBookRepository.findAllByStoreIdWithMember(storeId, pageable))
                     .willReturn(emptyPage);
 
-            Page<GuestBookDto.GuestBookResponse> result =
+            Slice<GuestBookDto.GuestBookResponse> result =
                     guestBookService.getGuestBooks(storeId, pageable);
 
             assertThat(result).isEmpty();
-            assertThat(result.getTotalElements()).isZero();
+            assertThat(result.hasNext()).isFalse();
         }
     }
 
@@ -231,8 +231,9 @@ class GuestBookServiceTest {
 
             assertThatThrownBy(
                             () -> guestBookService.updateGuestBook(guestBookId, stranger, request))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("작성자만");
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.NOT_GUESTBOOK_WRITER);
 
             assertThat(guestBook.getContent()).isEqualTo("원본 내용");
         }
@@ -246,7 +247,7 @@ class GuestBookServiceTest {
             given(guestBookRepository.findById(invalidId)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> guestBookService.updateGuestBook(invalidId, guest, request))
-                    .isInstanceOf(IllegalArgumentException.class);
+                    .isInstanceOf(BusinessException.class);
         }
     }
 
@@ -287,8 +288,9 @@ class GuestBookServiceTest {
             given(guestBookRepository.findById(guestBookId)).willReturn(Optional.of(guestBook));
 
             assertThatThrownBy(() -> guestBookService.deleteGuestBook(guestBookId, stranger))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("작성자만");
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ErrorCode.NOT_GUESTBOOK_WRITER);
 
             then(guestBookRepository).should(never()).delete(any());
         }
@@ -301,7 +303,7 @@ class GuestBookServiceTest {
             given(guestBookRepository.findById(invalidId)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> guestBookService.deleteGuestBook(invalidId, guest))
-                    .isInstanceOf(IllegalArgumentException.class);
+                    .isInstanceOf(BusinessException.class);
 
             then(guestBookRepository).should(never()).delete(any());
         }

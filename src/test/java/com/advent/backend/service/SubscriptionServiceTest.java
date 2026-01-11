@@ -7,6 +7,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.advent.backend.common.error.ErrorCode;
+import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.dto.SubscriptionDto;
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Store;
@@ -25,10 +27,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
 @ExtendWith(MockitoExtension.class)
 class SubscriptionServiceTest {
@@ -78,8 +80,9 @@ class SubscriptionServiceTest {
         given(storeRepository.findById(storeId)).willReturn(Optional.of(myStore));
 
         assertThatThrownBy(() -> subscriptionService.subscribe(memberId, storeId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("본인 상점은 구독할 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SELF_SUBSCRIPTION_NOT_ALLOWED);
 
         verify(subscriptionRepository, times(0)).save(any());
         verify(eventPublisher, times(0)).publishEvent(any());
@@ -102,8 +105,9 @@ class SubscriptionServiceTest {
                 .willReturn(true);
 
         assertThatThrownBy(() -> subscriptionService.subscribe(subscriberId, storeId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("이미 구독 중인 상점입니다.");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.ALREADY_SUBSCRIBED);
 
         verify(subscriptionRepository, times(0)).save(any());
     }
@@ -117,8 +121,9 @@ class SubscriptionServiceTest {
         given(memberRepository.findById(memberId)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> subscriptionService.subscribe(memberId, storeId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("존재하지 않는 유저입니다.");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.MEMBER_NOT_FOUND);
     }
 
     @Test
@@ -147,8 +152,9 @@ class SubscriptionServiceTest {
                 .willReturn(Optional.empty());
 
         assertThatThrownBy(() -> subscriptionService.unsubscribe(memberId, storeId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("구독 정보를 찾을 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SUBSCRIPTION_NOT_FOUND);
 
         verify(subscriptionRepository, times(0)).delete(any());
     }
@@ -166,11 +172,11 @@ class SubscriptionServiceTest {
                 Subscription.builder().id(UUID.randomUUID()).store(store).build();
 
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Subscription> subPage = new PageImpl<>(List.of(subscription));
+        Slice<Subscription> subSlice = new SliceImpl<>(List.of(subscription));
 
-        given(subscriptionRepository.findAllByMemberId(memberId, pageable)).willReturn(subPage);
+        given(subscriptionRepository.findAllByMemberId(memberId, pageable)).willReturn(subSlice);
 
-        Page<SubscriptionDto.SubscriptionResponse> result =
+        Slice<SubscriptionDto.SubscriptionResponse> result =
                 subscriptionService.getMySubscriptions(memberId, pageable);
 
         assertThat(result.getContent()).hasSize(1);

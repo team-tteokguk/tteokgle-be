@@ -12,9 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
 @DataJpaTest
@@ -99,7 +99,7 @@ public class NotificationRepositoryTest {
                 List.of(notification, notification2, notification3, notification4));
 
         //        entityManager.flush();
-
+        entityManager.clear();
         notificationRepository.updateNotification(member.getId());
         List<Notification> allNotifications = notificationRepository.findAll();
         assertThat(allNotifications).allMatch(Notification::isRead);
@@ -149,9 +149,9 @@ public class NotificationRepositoryTest {
 
         Pageable pageable = PageRequest.of(0, 2, Sort.by("createdAt").descending());
 
-        Page<Notification> page = notificationRepository.findAll(pageable);
+        Slice<Notification> page = notificationRepository.findAll(pageable);
 
         assertThat(page.getContent().size()).isEqualTo(2);
-        assertThat(page.getTotalElements()).isEqualTo(4);
+        assertThat(page.hasNext()).isTrue();
     }
 }
