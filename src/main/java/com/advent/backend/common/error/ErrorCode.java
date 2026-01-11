@@ -21,13 +21,17 @@ public enum ErrorCode {
 
     // 아이템 유효성
     ITEM_NOT_FOUND(409, "I001", "존재하지 않는 아이템입니다."),
+    ITEM_ACCESS_DENIED(403, "I002", "해당 아이템에 대한 권한이 없습니다."),
 
     // 사용자 유효성
     MEMBER_NOT_FOUND(404, "M001", "존재하지 않는 사용자입니다."),
     MYTTEOK_NOT_FOUND(404, "M002", "존재하지 않는 떡국입니다."),
 
+    // 떡국 유효성
+    TTEOKGUK_NOT_FOUND(404, "TK001", "나의 떡국이 존재하지 않습니다."),
+
     // 상점 유효성
-    STORE_NOT_FOUND(404, "M002", "존재하지 않는 상점입니다."),
+    STORE_NOT_FOUND(404, "S001", "존재하지 않는 상점입니다."),
     SELF_SUBSCRIPTION_NOT_ALLOWED(400, "S002", "본인 상점은 구독할 수 없습니다."),
 
     // 구독
