@@ -290,7 +290,7 @@ class GuestBookServiceTest {
             assertThatThrownBy(() -> guestBookService.deleteGuestBook(guestBookId, stranger))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ErrorCode.NOT_GUESTBOOK_WRITER);
+                    .isEqualTo(ErrorCode.GUESTBOOK_ACCESS_DENIED);
 
             then(guestBookRepository).should(never()).delete(any());
         }
