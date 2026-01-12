@@ -45,6 +45,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String targetUrl =
                 UriComponentsBuilder.fromUriString(baseUrl)
                         .queryParam("accessToken", accessToken)
+                        .queryParam("refreshToken", refreshToken)
                         .build()
                         .toUriString();
 

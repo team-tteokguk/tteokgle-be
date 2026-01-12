@@ -54,13 +54,14 @@ public class AuthController {
 
     @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.")
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(HttpServletRequest request) {
-        String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+    public ResponseEntity<?> refresh(
+            HttpServletRequest request, @RequestHeader("Refresh-Token") String headerrefreshToken) {
+        String refreshToken = headerrefreshToken; // 테스트용
+        //            jwtTokenProvider.resolveRefreshToken(request);
 
         // 토큰 유효성 검사
-        if (refreshToken == null && jwtTokenProvider.validateToken(refreshToken)) {
+        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
             UUID memberId = jwtTokenProvider.getMemberId(refreshToken);
-
             if (refreshTokenService.isRefreshTokenValid(memberId.toString(), refreshToken)) {
                 String newAccessToken = jwtTokenProvider.createAccessToken(memberId.toString());
                 String newRefreshToken = jwtTokenProvider.createRefreshToken(memberId.toString());
@@ -75,6 +76,6 @@ public class AuthController {
             }
         }
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refreshed Token");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refreshed Token ");
     }
 }

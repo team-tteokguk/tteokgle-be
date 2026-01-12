@@ -28,7 +28,7 @@ public class RefreshTokenService {
                 .ifPresent(refreshTokenRepository::delete);
     }
 
-    // 리프레시 토큰과 새로 발급받은 토큰과 일치하는지 확인ㅇ
+    // 리프레시 토큰과 새로 발급받은 토큰과 일치하는지 확인
     @Transactional
     public boolean isRefreshTokenValid(String memberId, String refreshToken) {
         return true;

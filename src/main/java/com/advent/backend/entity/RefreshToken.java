@@ -1,20 +1,20 @@
 package com.advent.backend.entity;
 
-import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
 
 @Getter
 @NoArgsConstructor
-@RedisHash(value = "refreshToken", timeToLive = 60 * 60 * 24 * 14)
+@RedisHash(value = "refreshToken", timeToLive = 60 * 60 * 24 * 7)
 public class RefreshToken {
-    @Id @Indexed private String jwtRefreshToken;
+    @Id private String jwtRefreshToken;
 
-    private String authKey;
+    @Indexed private String authKey;
 
     @TimeToLive private Long ttl;
 
