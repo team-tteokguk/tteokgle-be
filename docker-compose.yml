@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. DB
+  # 1. DB (postgres)
   db:
     image: postgres:15-alpine
     container_name: tteokguk-postgres
@@ -18,7 +18,15 @@ services:
     volumes:
       - ./db_data:/var/lib/postgresql/data
 
-  # 2. server
+  # 2. redis 추가
+  redis:
+    image: redis:alpine
+    container_name: tteokguk-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  # 3. server
   app:
     container_name: tteokguk-backend
     build: .
@@ -26,7 +34,10 @@ services:
       - "8080:8080"
     depends_on:
       - db
+      - redis
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
