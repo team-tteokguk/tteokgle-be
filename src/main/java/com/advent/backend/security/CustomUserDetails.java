@@ -19,6 +19,11 @@ public class CustomUserDetails implements OAuth2User {
         this.attributes = attributes;
     }
 
+    public CustomUserDetails(Member member) {
+        this.member = member;
+        this.attributes = null;
+    }
+
     @Override
     public Map<String, Object> getAttributes() {
         return attributes;
