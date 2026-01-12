@@ -28,7 +28,8 @@ public class SecurityConfig {
         "/api/v1/replies/**",
         "/nickname",
         "/login", // 커스텀 로그인 페이지
-        "/auth/login/kakao/**" // 사용자 정의 경로
+        "/auth/login/kakao/**", // 사용자 정의 경로
+        "/auth/refresh", // AT 재발급
     };
 
     private final JwtTokenProvider jwtTokenProvider;

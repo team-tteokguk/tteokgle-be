@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+/** */
 @Component
 public class JwtTokenProvider {
     private final SecretKey key;
@@ -75,10 +76,19 @@ public class JwtTokenProvider {
     }
 
     // HTTP Header에서 Access Token 추출
-    public String resolveToken(HttpServletRequest request) {
+    public String resolveAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
+        }
+        return null;
+    }
+
+    // HTTP Header에서 Refreseh Token 추출
+    public String resolveRefreshToken(HttpServletRequest request) {
+        String token = request.getHeader("Refresh-Token");
+        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
+            return token.substring(7);
         }
         return null;
     }

@@ -12,7 +12,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Auth", description = " 소셜 로그인, 로그아웃, 리프레시 토큰 발급")
@@ -54,9 +53,9 @@ public class AuthController {
     }
 
     @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.")
-    @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(HttpServletRequest request) {
-        String refreshToken = jwtTokenProvider.resolveToken(request);
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(HttpServletRequest request) {
+        String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
         // 토큰 유효성 검사
         if (refreshToken == null && jwtTokenProvider.validateToken(refreshToken)) {
@@ -77,13 +76,5 @@ public class AuthController {
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refreshed Token");
-    }
-
-    private String resolveToken(HttpServletRequest request) {
-        String token = request.getHeader("Refresh-Token");
-        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
-            return token.substring(7);
-        }
-        return null;
     }
 }
