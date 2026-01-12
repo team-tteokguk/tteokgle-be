@@ -1,7 +1,5 @@
 package com.advent.backend.service;
 
-import com.advent.backend.common.error.ErrorCode;
-import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Notification;
 import com.advent.backend.repository.NotificationRepository;
@@ -110,15 +108,10 @@ public class NotificationService {
     /**
      * 알림 읽음 처리
      *
-     * @param notificationId
+     * @param memberId
      */
     @Transactional
-    public void readNotification(UUID notificationId) {
-        Notification notification =
-                notificationRepository
-                        .findById(notificationId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
-
-        notification.read();
+    public void readNotification(UUID memberId) {
+        notificationRepository.markAllAsReadByMemberId(memberId);
     }
 }
