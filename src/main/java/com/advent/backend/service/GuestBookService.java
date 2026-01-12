@@ -71,7 +71,7 @@ public class GuestBookService {
     }
 
     /**
-     * 방명록 수정
+     * 방명록 수정 (작성자만 가능)
      *
      * @param guestBookId
      * @param member
@@ -90,7 +90,7 @@ public class GuestBookService {
         guestBook.update(request.getContent());
     }
 
-    /** 방명록 삭제 */
+    /** 방명록 삭제(작성자나 상점 주인 가능) */
     @Transactional
     public void deleteGuestBook(UUID guestBookId, Member member) {
         GuestBook guestBook =
@@ -98,13 +98,29 @@ public class GuestBookService {
                         .findById(guestBookId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.GUESTBOOK_NOT_FOUND));
 
-        validateWriter(guestBook, member);
+        validateDeletePermission(guestBook, member);
 
         guestBookRepository.delete(guestBook);
     }
 
     /**
-     * 권한 체크
+     * 권한 체크 (삭제용)
+     *
+     * @param guestBook
+     * @param member
+     */
+    private void validateDeletePermission(GuestBook guestBook, Member member) {
+        UUID requestId = member.getId();
+        UUID writerId = guestBook.getId();
+        UUID storeOwnerId = guestBook.getMember().getId();
+
+        if (!requestId.equals(writerId) && !requestId.equals(storeOwnerId)) {
+            throw new BusinessException(ErrorCode.GUESTBOOK_ACCESS_DENIED);
+        }
+    }
+
+    /**
+     * 권한 체크 (수정용)
      *
      * @param guestBook
      * @param member
