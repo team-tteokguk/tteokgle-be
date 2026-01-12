@@ -40,7 +40,7 @@ public class GuestBookService {
             UUID storeId, Member writer, GuestBookDto.GuestBookRequest request) {
         Store store =
                 storeRepository
-                        .findById(storeId)
+                        .findByIdWithMember(storeId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         GuestBook guestBook =
@@ -86,7 +86,7 @@ public class GuestBookService {
             UUID guestBookId, Member member, GuestBookDto.GuestBookRequest request) {
         GuestBook guestBook =
                 guestBookRepository
-                        .findById(guestBookId)
+                        .findByIdWithMember(guestBookId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.GUESTBOOK_NOT_FOUND));
 
         validateWriter(guestBook, member);
@@ -101,7 +101,7 @@ public class GuestBookService {
     public void deleteGuestBook(UUID guestBookId, Member member) {
         GuestBook guestBook =
                 guestBookRepository
-                        .findById(guestBookId)
+                        .findByIdWithMember(guestBookId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.GUESTBOOK_NOT_FOUND));
 
         validateDeletePermission(guestBook, member);
