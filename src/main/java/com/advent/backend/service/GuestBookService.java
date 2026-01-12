@@ -28,14 +28,15 @@ public class GuestBookService {
     private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * 방명록 등록
+     * 방명록 생성
      *
      * @param storeId
      * @param writer
      * @param request
+     * @return 생성된 방명록 정보
      */
     @Transactional
-    public void createGuestBook(
+    public GuestBookDto.GuestBookResponse createGuestBook(
             UUID storeId, Member writer, GuestBookDto.GuestBookRequest request) {
         Store store =
                 storeRepository
@@ -49,11 +50,13 @@ public class GuestBookService {
                         .content(request.getContent())
                         .build();
 
-        guestBookRepository.save(guestBook);
+        GuestBook savedGuestBook = guestBookRepository.save(guestBook);
 
         if (!store.getMember().getId().equals(writer.getId())) {
             eventPublisher.publishEvent(new CommentEvent(writer, store.getMember(), guestBook));
         }
+
+        return converToResponse(savedGuestBook);
     }
 
     /**
@@ -76,9 +79,10 @@ public class GuestBookService {
      * @param guestBookId
      * @param member
      * @param request
+     * @return 생성된 방명록 정보
      */
     @Transactional
-    public void updateGuestBook(
+    public GuestBookDto.GuestBookResponse updateGuestBook(
             UUID guestBookId, Member member, GuestBookDto.GuestBookRequest request) {
         GuestBook guestBook =
                 guestBookRepository
@@ -88,6 +92,8 @@ public class GuestBookService {
         validateWriter(guestBook, member);
 
         guestBook.update(request.getContent());
+
+        return converToResponse(guestBook);
     }
 
     /** 방명록 삭제(작성자나 상점 주인 가능) */
