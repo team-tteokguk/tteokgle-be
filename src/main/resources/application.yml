@@ -7,8 +7,7 @@ spring:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
-              -openid
-              -profile
+              - profile
           kakao:
             client-id: ${KAKAO_REST_API_KEY}
             client-secret: ${KAKAO_SECRET}
@@ -41,4 +40,10 @@ spring:
         show_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+jwt:
+  secret: V44ZFR7J+Fq3Ohbwl9ro9WmWjKXKs5Priz9sLOlrV9/6fdxBwxNg8th930W2kIxl0fegX0tTtpReKz49BOHCJQ====
+  # Access Token: 30분 (1000 * 60 * 30)
+  access-token-validity-in-seconds: 1800000
+  # Refresh Token: 14일 (1000 * 60 * 60 * 24 * 14)
+  refresh-token-validity-in-seconds: 1209600000
 

@@ -27,6 +27,13 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(404, "M001", "존재하지 않는 사용자입니다."),
     MYTTEOK_NOT_FOUND(404, "M002", "존재하지 않는 떡국입니다."),
 
+    // 토큰 유효성
+    INVALID_TOKEN(401, "A001", "유효하지 않은 토큰입니다."),
+    TOKEN_EXPIRED(401, "A002", "만료된 토큰입니다."),
+    TOKEN_MALFORMED(401, "A003", "손상된 토큰입니다."),
+    TOKEN_UNSUPPORTED(401, "A004", "지원하지 않는 토큰입니다."),
+    TOKEN_GENERATION_FAILED(500, "A005", "토큰 생성에 실패했습니다."),
+
     // 떡국 유효성
     TTEOKGUK_NOT_FOUND(404, "TK001", "나의 떡국이 존재하지 않습니다."),
 
