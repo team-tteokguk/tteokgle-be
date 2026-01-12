@@ -74,9 +74,28 @@ class GuestBookServiceTest {
             String content = "멋진 상점이네요!";
             GuestBookDto.GuestBookRequest request = new GuestBookDto.GuestBookRequest(content);
 
-            given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+            UUID savedGuestBookId = UUID.randomUUID();
+            GuestBook savedGuestBook =
+                    GuestBook.builder()
+                            .id(savedGuestBookId)
+                            .store(store)
+                            .member(guest)
+                            .content(content)
+                            .createdAt(LocalDateTime.now())
+                            .build();
 
-            guestBookService.createGuestBook(storeId, guest, request);
+            given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+            given(guestBookRepository.save(any(GuestBook.class))).willReturn(savedGuestBook);
+
+            GuestBookDto.GuestBookResponse response =
+                    guestBookService.createGuestBook(storeId, guest, request);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getId()).isEqualTo(savedGuestBookId.toString());
+            assertThat(response.getWriterId()).isEqualTo(guestId.toString());
+            assertThat(response.getWriterNickname()).isEqualTo("방문손님");
+            assertThat(response.getContent()).isEqualTo(content);
+            assertThat(response.getCreatedAt()).isNotNull();
 
             ArgumentCaptor<GuestBook> guestBookCaptor = ArgumentCaptor.forClass(GuestBook.class);
             then(guestBookRepository).should().save(guestBookCaptor.capture());
@@ -97,11 +116,28 @@ class GuestBookServiceTest {
         @Test
         @DisplayName("상점 주인이 자신의 방명록에 글을 쓰면 알림을 발송하지 않는다")
         void createGuestBook_ByOwner_DoesNotPublishEvent() {
-            GuestBookDto.GuestBookRequest request = new GuestBookDto.GuestBookRequest("공지사항");
+            String content = "공지사항";
+            GuestBookDto.GuestBookRequest request = new GuestBookDto.GuestBookRequest(content);
+
+            UUID savedGuestBookId = UUID.randomUUID();
+            GuestBook savedGuestBook =
+                    GuestBook.builder()
+                            .id(savedGuestBookId)
+                            .store(store)
+                            .member(owner)
+                            .content(content)
+                            .createdAt(LocalDateTime.now())
+                            .build();
 
             given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+            given(guestBookRepository.save(any(GuestBook.class))).willReturn(savedGuestBook);
 
-            guestBookService.createGuestBook(storeId, owner, request);
+            GuestBookDto.GuestBookResponse response =
+                    guestBookService.createGuestBook(storeId, owner, request);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getContent()).isEqualTo(content);
+            assertThat(response.getWriterId()).isEqualTo(ownerId.toString());
 
             then(guestBookRepository).should().save(any(GuestBook.class));
             then(eventPublisher).should(never()).publishEvent(any());
