@@ -100,7 +100,7 @@ public class NotificationRepositoryTest {
 
         //        entityManager.flush();
         entityManager.clear();
-        notificationRepository.updateNotification(member.getId());
+        notificationRepository.markAllAsReadByMemberId(member.getId());
         List<Notification> allNotifications = notificationRepository.findAll();
         assertThat(allNotifications).allMatch(Notification::isRead);
     }

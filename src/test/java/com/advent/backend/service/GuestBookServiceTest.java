@@ -74,9 +74,28 @@ class GuestBookServiceTest {
             String content = "멋진 상점이네요!";
             GuestBookDto.GuestBookRequest request = new GuestBookDto.GuestBookRequest(content);
 
-            given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+            UUID savedGuestBookId = UUID.randomUUID();
+            GuestBook savedGuestBook =
+                    GuestBook.builder()
+                            .id(savedGuestBookId)
+                            .store(store)
+                            .member(guest)
+                            .content(content)
+                            .createdAt(LocalDateTime.now())
+                            .build();
 
-            guestBookService.createGuestBook(storeId, guest, request);
+            given(storeRepository.findByIdWithMember(storeId)).willReturn(Optional.of(store));
+            given(guestBookRepository.save(any(GuestBook.class))).willReturn(savedGuestBook);
+
+            GuestBookDto.GuestBookResponse response =
+                    guestBookService.createGuestBook(storeId, guest, request);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getId()).isEqualTo(savedGuestBookId.toString());
+            assertThat(response.getWriterId()).isEqualTo(guestId.toString());
+            assertThat(response.getWriterNickname()).isEqualTo("방문손님");
+            assertThat(response.getContent()).isEqualTo(content);
+            assertThat(response.getCreatedAt()).isNotNull();
 
             ArgumentCaptor<GuestBook> guestBookCaptor = ArgumentCaptor.forClass(GuestBook.class);
             then(guestBookRepository).should().save(guestBookCaptor.capture());
@@ -97,11 +116,28 @@ class GuestBookServiceTest {
         @Test
         @DisplayName("상점 주인이 자신의 방명록에 글을 쓰면 알림을 발송하지 않는다")
         void createGuestBook_ByOwner_DoesNotPublishEvent() {
-            GuestBookDto.GuestBookRequest request = new GuestBookDto.GuestBookRequest("공지사항");
+            String content = "공지사항";
+            GuestBookDto.GuestBookRequest request = new GuestBookDto.GuestBookRequest(content);
 
-            given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+            UUID savedGuestBookId = UUID.randomUUID();
+            GuestBook savedGuestBook =
+                    GuestBook.builder()
+                            .id(savedGuestBookId)
+                            .store(store)
+                            .member(owner)
+                            .content(content)
+                            .createdAt(LocalDateTime.now())
+                            .build();
 
-            guestBookService.createGuestBook(storeId, owner, request);
+            given(storeRepository.findByIdWithMember(storeId)).willReturn(Optional.of(store));
+            given(guestBookRepository.save(any(GuestBook.class))).willReturn(savedGuestBook);
+
+            GuestBookDto.GuestBookResponse response =
+                    guestBookService.createGuestBook(storeId, owner, request);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getContent()).isEqualTo(content);
+            assertThat(response.getWriterId()).isEqualTo(ownerId.toString());
 
             then(guestBookRepository).should().save(any(GuestBook.class));
             then(eventPublisher).should(never()).publishEvent(any());
@@ -113,7 +149,7 @@ class GuestBookServiceTest {
             UUID invalidStoreId = UUID.randomUUID();
             GuestBookDto.GuestBookRequest request = new GuestBookDto.GuestBookRequest("내용");
 
-            given(storeRepository.findById(invalidStoreId)).willReturn(Optional.empty());
+            given(storeRepository.findByIdWithMember(invalidStoreId)).willReturn(Optional.empty());
 
             assertThatThrownBy(
                             () -> guestBookService.createGuestBook(invalidStoreId, guest, request))
@@ -212,12 +248,13 @@ class GuestBookServiceTest {
             GuestBookDto.GuestBookRequest request =
                     new GuestBookDto.GuestBookRequest(updatedContent);
 
-            given(guestBookRepository.findById(guestBookId)).willReturn(Optional.of(guestBook));
+            given(guestBookRepository.findByIdWithMember(guestBookId))
+                    .willReturn(Optional.of(guestBook));
 
             guestBookService.updateGuestBook(guestBookId, guest, request);
 
             assertThat(guestBook.getContent()).isEqualTo(updatedContent);
-            then(guestBookRepository).should().findById(guestBookId);
+            then(guestBookRepository).should().findByIdWithMember(guestBookId);
         }
 
         @Test
@@ -227,7 +264,8 @@ class GuestBookServiceTest {
 
             GuestBookDto.GuestBookRequest request = new GuestBookDto.GuestBookRequest("해킹시도");
 
-            given(guestBookRepository.findById(guestBookId)).willReturn(Optional.of(guestBook));
+            given(guestBookRepository.findByIdWithMember(guestBookId))
+                    .willReturn(Optional.of(guestBook));
 
             assertThatThrownBy(
                             () -> guestBookService.updateGuestBook(guestBookId, stranger, request))
@@ -244,7 +282,7 @@ class GuestBookServiceTest {
             UUID invalidId = UUID.randomUUID();
             GuestBookDto.GuestBookRequest request = new GuestBookDto.GuestBookRequest("수정");
 
-            given(guestBookRepository.findById(invalidId)).willReturn(Optional.empty());
+            given(guestBookRepository.findByIdWithMember(invalidId)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> guestBookService.updateGuestBook(invalidId, guest, request))
                     .isInstanceOf(BusinessException.class);
@@ -273,7 +311,8 @@ class GuestBookServiceTest {
         @Test
         @DisplayName("작성자가 자신의 방명록을 삭제할 수 있다")
         void deleteGuestBook_ByAuthor_DeletesSuccessfully() {
-            given(guestBookRepository.findById(guestBookId)).willReturn(Optional.of(guestBook));
+            given(guestBookRepository.findByIdWithMember(guestBookId))
+                    .willReturn(Optional.of(guestBook));
 
             guestBookService.deleteGuestBook(guestBookId, guest);
 
@@ -285,12 +324,13 @@ class GuestBookServiceTest {
         void deleteGuestBook_ByNonAuthor_ThrowsException() {
             Member stranger = Member.builder().id(UUID.randomUUID()).nickname("제3자").build();
 
-            given(guestBookRepository.findById(guestBookId)).willReturn(Optional.of(guestBook));
+            given(guestBookRepository.findByIdWithMember(guestBookId))
+                    .willReturn(Optional.of(guestBook));
 
             assertThatThrownBy(() -> guestBookService.deleteGuestBook(guestBookId, stranger))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ErrorCode.NOT_GUESTBOOK_WRITER);
+                    .isEqualTo(ErrorCode.GUESTBOOK_ACCESS_DENIED);
 
             then(guestBookRepository).should(never()).delete(any());
         }
@@ -300,7 +340,7 @@ class GuestBookServiceTest {
         void deleteGuestBook_NonExistent_ThrowsException() {
             UUID invalidId = UUID.randomUUID();
 
-            given(guestBookRepository.findById(invalidId)).willReturn(Optional.empty());
+            given(guestBookRepository.findByIdWithMember(invalidId)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> guestBookService.deleteGuestBook(invalidId, guest))
                     .isInstanceOf(BusinessException.class);

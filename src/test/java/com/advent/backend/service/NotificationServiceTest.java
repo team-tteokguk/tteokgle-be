@@ -1,7 +1,6 @@
 package com.advent.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -9,7 +8,6 @@ import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Notification;
 import com.advent.backend.repository.NotificationRepository;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -106,28 +104,12 @@ class NotificationServiceTest {
     }
 
     @Test
-    @DisplayName("알림을 읽음 처리하면 isRead 상태가 true로 변경된다")
-    void should_ChangeIsReadToTrue_When_ReadNotification() {
-        UUID notificationId = UUID.randomUUID();
+    @DisplayName("모든 알림을 일괄 읽음 처리한다")
+    void should_MarkAllNotificationsAsRead() {
+        UUID memberId = UUID.randomUUID();
 
-        Notification notification = Notification.builder().id(notificationId).isRead(false).build();
+        notificationService.readNotification(memberId);
 
-        given(notificationRepository.findById(notificationId))
-                .willReturn(Optional.of(notification));
-
-        notificationService.readNotification(notificationId);
-
-        assertThat(notification.isRead()).isTrue();
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 알림을 읽으려 하면 예외가 발생한다")
-    void should_ThrowException_When_NotificationNotFound() {
-        UUID notificationId = UUID.randomUUID();
-        given(notificationRepository.findById(notificationId)).willReturn(Optional.empty());
-
-        assertThatThrownBy(() -> notificationService.readNotification(notificationId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("존재하지 않는 알림입니다.");
+        verify(notificationRepository).markAllAsReadByMemberId(memberId);
     }
 }

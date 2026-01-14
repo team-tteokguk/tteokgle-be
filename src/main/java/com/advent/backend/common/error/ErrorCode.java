@@ -48,6 +48,7 @@ public enum ErrorCode {
     // 방명록 유효성
     GUESTBOOK_NOT_FOUND(404, "G001", "존재하지 않는 방명록입니다."),
     NOT_GUESTBOOK_WRITER(403, "G002", "작성자만 수정/삭제할 수 있습니다."),
+    GUESTBOOK_ACCESS_DENIED(403, "G003", "해당 방명록에 대한 권한이 없습니다."),
 
     // 알림 유효성
     NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),
