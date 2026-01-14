@@ -1,8 +1,8 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.12'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id("com.diffplug.spotless") version "6.25.0"
+    id 'java'
+    id 'org.springframework.boot' version '3.4.12'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = 'com.advent'
@@ -10,20 +10,20 @@ version = '0.0.1-SNAPSHOT'
 description = 'Demo project for Spring Boot'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
-	gradlePluginPortal()
+    mavenCentral()
+    gradlePluginPortal()
 }
 
 dependencies {
@@ -31,66 +31,63 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3' // swagger
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     testImplementation 'org.springframework.security:spring-security-test'
     compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'org.postgresql:postgresql'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'org.postgresql:postgresql'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 spotless {
-	java {
-		target 'src/**/*.java', 'test/**/*.java'
+    java {
+        target 'src/**/*.java', 'test/**/*.java'
 
-		importOrder('java|javax', 'com.advent', '', '\\#')
+        importOrder('java|javax', 'com.advent', '', '\\#')
 
-		removeUnusedImports()
+        removeUnusedImports()
 
-		googleJavaFormat().aosp()
-	}
+        googleJavaFormat().aosp()
+    }
 }
 
 tasks.register('installGitHooks', Copy) {
-	description = 'Git hooks 스크립트를 .git/hooks 디렉토리에 복사'
-	from new File(rootProject.rootDir, 'scripts/git-hooks')
-	into new File(rootProject.rootDir, '.git/hooks')
+    description = 'Git hooks 스크립트를 .git/hooks 디렉토리에 복사'
+    from new File(rootProject.rootDir, 'scripts/git-hooks')
+    into new File(rootProject.rootDir, '.git/hooks')
 
-	fileMode 0755
+    fileMode 0755
 
-	doLast {
-		println '✅ Git hooks가 성공적으로 설치되었습니다!'
-	}
+    doLast {
+        println '✅ Git hooks가 성공적으로 설치되었습니다!'
+    }
 }
 
 build.dependsOn installGitHooks
 
 tasks.register('fmt') {
-	group = 'verification'
-	dependsOn 'spotlessApply'
-	doLast {
-		println '✨ [Success] 전체 코드 포맷팅이 완료되었습니다.'
-	}
+    group = 'verification'
+    dependsOn 'spotlessApply'
+    doLast {
+        println '✨ [Success] 전체 코드 포맷팅이 완료되었습니다.'
+    }
 }
 
 tasks.register('preCommit') {
-	group = 'verification'
-	dependsOn 'spotlessApply'
-	dependsOn 'test'
-	doLast {
-		println '🚀 [Success] 테스트와 포맷팅 검사가 통과되었습니다. 커밋 가능!'
-	}
+    group = 'verification'
+    dependsOn 'spotlessApply'
+    dependsOn 'test'
+    doLast {
+        println '🚀 [Success] 테스트와 포맷팅 검사가 통과되었습니다. 커밋 가능!'
+    }
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
