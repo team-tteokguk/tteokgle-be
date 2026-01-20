@@ -1,16 +1,16 @@
 package com.advent.backend.controller;
 
 import com.advent.backend.dto.AuthDto;
+import com.advent.backend.dto.TokenDto;
 import com.advent.backend.enums.SocialProvider;
 import com.advent.backend.provider.JwtTokenProvider;
+import com.advent.backend.repository.RefreshTokenRepository;
 import com.advent.backend.service.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     // accessToken & refreshToken 관리 방식 상의하기
     @Operation(
@@ -54,28 +55,13 @@ public class AuthController {
 
     @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.")
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(
-            HttpServletRequest request, @RequestHeader("Refresh-Token") String headerrefreshToken) {
-        String refreshToken = headerrefreshToken; // 테스트용
-        //            jwtTokenProvider.resolveRefreshToken(request);
+    public ResponseEntity<TokenDto.TokenResponse> refresh(HttpServletRequest request
+            //        @RequestHeader("Refresh-Token") String headerrefreshToken
+            ) {
+        //        String refreshToken = headerrefreshToken; // 테스트용
+        String refreshToken = jwtTokenProvider.resolveRefreshToken(request); //  실제
+        TokenDto.TokenResponse newToken = refreshTokenService.isRefreshTokenValid(refreshToken);
 
-        // 토큰 유효성 검사
-        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
-            UUID memberId = jwtTokenProvider.getMemberId(refreshToken);
-            if (refreshTokenService.isRefreshTokenValid(memberId.toString(), refreshToken)) {
-                String newAccessToken = jwtTokenProvider.createAccessToken(memberId.toString());
-                String newRefreshToken = jwtTokenProvider.createRefreshToken(memberId.toString());
-
-                refreshTokenService.removeRefreshToken(refreshToken);
-                refreshTokenService.saveRefreshToken(newRefreshToken, memberId.toString());
-
-                return ResponseEntity.ok()
-                        .header("Authorization", "Bearer " + newAccessToken)
-                        .header("Refresh-Token", "Bearer " + newRefreshToken)
-                        .body("Token reissued successfully");
-            }
-        }
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refreshed Token ");
+        return ResponseEntity.ok(newToken);
     }
 }
