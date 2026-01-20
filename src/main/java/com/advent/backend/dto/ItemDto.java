@@ -62,6 +62,9 @@ public class ItemDto {
         @Schema(description = "배치 Y 좌표")
         private Float posY;
 
+        @Schema(description = "배치 Z 좌표")
+        private Float posZ;
+
         @Schema(description = "사용 여부")
         private boolean isUsed;
     }
@@ -132,5 +135,8 @@ public class ItemDto {
 
         @Schema(description = "좌표 Y")
         private Float posY;
+
+        @Schema(description = "좌표 Z")
+        private Float posZ;
     }
 }

@@ -13,8 +13,8 @@ import com.advent.backend.repository.SubscriptionRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +66,7 @@ public class SubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SubscriptionDto.SubscriptionResponse> getMySubscriptions(
+    public Slice<SubscriptionDto.SubscriptionResponse> getMySubscriptions(
             UUID memberId, Pageable pageable) {
         return subscriptionRepository.findAllByMemberId(memberId, pageable).map(this::convertToDto);
     }

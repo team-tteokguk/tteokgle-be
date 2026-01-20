@@ -57,4 +57,15 @@ public class MyItem extends BaseTimeEntity {
         this.pos_z = z;
         this.isUsed = true;
     }
+
+    public void updatePlacement(boolean isUsed, Float x, Float y, Float z) {
+        this.isUsed = isUsed;
+        this.pos_x = x;
+        this.pos_y = y;
+        this.pos_z = z;
+    }
+
+    public void read() {
+        this.isRead = true;
+    }
 }

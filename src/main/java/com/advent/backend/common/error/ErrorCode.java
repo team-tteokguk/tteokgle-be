@@ -21,13 +21,24 @@ public enum ErrorCode {
 
     // 아이템 유효성
     ITEM_NOT_FOUND(409, "I001", "존재하지 않는 아이템입니다."),
+    ITEM_ACCESS_DENIED(403, "I002", "해당 아이템에 대한 권한이 없습니다."),
 
     // 사용자 유효성
     MEMBER_NOT_FOUND(404, "M001", "존재하지 않는 사용자입니다."),
     MYTTEOK_NOT_FOUND(404, "M002", "존재하지 않는 떡국입니다."),
 
+    // 토큰 유효성
+    INVALID_TOKEN(401, "A001", "유효하지 않은 토큰입니다."),
+    TOKEN_EXPIRED(401, "A002", "만료된 토큰입니다."),
+    TOKEN_MALFORMED(401, "A003", "손상된 토큰입니다."),
+    TOKEN_UNSUPPORTED(401, "A004", "지원하지 않는 토큰입니다."),
+    TOKEN_GENERATION_FAILED(500, "A005", "토큰 생성에 실패했습니다."),
+
+    // 떡국 유효성
+    TTEOKGUK_NOT_FOUND(404, "TK001", "나의 떡국이 존재하지 않습니다."),
+
     // 상점 유효성
-    STORE_NOT_FOUND(404, "M002", "존재하지 않는 상점입니다."),
+    STORE_NOT_FOUND(404, "S001", "존재하지 않는 상점입니다."),
     SELF_SUBSCRIPTION_NOT_ALLOWED(400, "S002", "본인 상점은 구독할 수 없습니다."),
 
     // 구독
@@ -37,6 +48,7 @@ public enum ErrorCode {
     // 방명록 유효성
     GUESTBOOK_NOT_FOUND(404, "G001", "존재하지 않는 방명록입니다."),
     NOT_GUESTBOOK_WRITER(403, "G002", "작성자만 수정/삭제할 수 있습니다."),
+    GUESTBOOK_ACCESS_DENIED(403, "G003", "해당 방명록에 대한 권한이 없습니다."),
 
     // 알림 유효성
     NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),

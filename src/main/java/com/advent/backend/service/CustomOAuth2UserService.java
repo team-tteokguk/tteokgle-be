@@ -3,6 +3,7 @@ package com.advent.backend.service;
 import com.advent.backend.entity.Member;
 import com.advent.backend.repository.MemberRepository;
 import com.advent.backend.security.CustomUserDetails;
+import com.advent.backend.security.GoogleUserDetails;
 import com.advent.backend.security.KakaoUserDetails;
 import com.advent.backend.security.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2UserInfo userInfo = null;
         if (registrationId.equals("kakao")) {
             userInfo = new KakaoUserDetails(oAuth2User.getAttributes());
+        }
+        if (registrationId.equals("google")) {
+            userInfo = new GoogleUserDetails(oAuth2User.getAttributes());
         }
 
         Member member =

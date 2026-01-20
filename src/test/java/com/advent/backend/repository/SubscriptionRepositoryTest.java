@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
 @DataJpaTest
@@ -82,12 +82,12 @@ class SubscriptionRepositoryTest {
 
         Pageable pageable = PageRequest.of(0, 3, Sort.by("createdAt").descending());
 
-        Page<Subscription> result =
+        Slice<Subscription> result =
                 subscriptionRepository.findAllByMemberId(subscriber.getId(), pageable);
 
-        assertThat(result.getTotalElements()).isEqualTo(5);
+        assertThat(result.hasNext()).isTrue();
         assertThat(result.getContent()).hasSize(3);
-        assertThat(result.getTotalPages()).isEqualTo(2);
+        assertThat(result.hasNext()).isTrue();
     }
 
     @Test
