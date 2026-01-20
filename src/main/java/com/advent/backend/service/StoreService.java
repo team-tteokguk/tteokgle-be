@@ -66,7 +66,7 @@ public class StoreService {
         MyTteok receiverTteok =
                 myTteokRepository
                         .findByMemberId(buyerId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.MYTTEOK_NOT_FOUND));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.TTEOKGUK_NOT_FOUND));
 
         // 5. 돈 송금하기
         pointService.transfer(buyer, seller, item.getId(), item.getCost(), item.getName());

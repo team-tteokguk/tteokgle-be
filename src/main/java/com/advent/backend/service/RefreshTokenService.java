@@ -36,10 +36,14 @@ public class RefreshTokenService {
     // 서버(Redis)에 있는 토큰이랑 로컬에서 보낸 토큰이랑 일치하는지 확인
     @Transactional
     public TokenDto.TokenResponse isRefreshTokenValid(String refreshToken) {
+        // 1. RT가 없는 경우
+        if (refreshToken == null) {
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+        }
 
-        // 1. JwtProvider에서 RT가 만료되었는지 여부 확인
-        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        // 2. JwtProvider에서 RT가 만료되었는지 여부 확인
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
         }
 
         // 2. 헤더에서 가져온 RT에서 id값을 추출한다.
@@ -49,11 +53,13 @@ public class RefreshTokenService {
         RefreshToken savedToken =
                 refreshTokenRepository
                         .findByAuthKey(memberId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.REFRESHTOKEN_NOT_FOUND));
+                        .orElseThrow(
+                                () -> new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
         // 5. Redis의 RT와 클라이언트의 RT가 일치하는지 확인
         if (!savedToken.getJwtRefreshToken().equals(refreshToken)) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+            // TODO: 보안상 로그까지 남기는 것이 좋음
+            throw new BusinessException(ErrorCode.INVAILD_REFRESH_TOKEN);
         }
 
         // 6. 일치한다면 새 토큰 생성

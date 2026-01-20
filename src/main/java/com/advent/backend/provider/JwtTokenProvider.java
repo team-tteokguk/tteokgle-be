@@ -83,9 +83,9 @@ public class JwtTokenProvider {
 
             return subject;
         } catch (ExpiredJwtException e) {
-            throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
+            throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
         } catch (JwtException | IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+            throw new BusinessException(ErrorCode.INVAILD_REFRESH_TOKEN);
         }
     }
 

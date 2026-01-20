@@ -27,12 +27,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String memberId = customUserDetails.getMember().getId().toString();
 
         // JWT 토큰 생성
-        // TODO: JWTTokenProvider 작성
         String accessToken = jwtTokenProvider.createAccessToken(memberId);
         String refreshToken = jwtTokenProvider.createRefreshToken(memberId);
 
         // refresh 토큰 redis에 저장
         refreshTokenService.saveRefreshToken(refreshToken, memberId);
+
+        // TODO: RT를 HttpOnly 쿠키에 저장 (보안)
 
         // 닉네임 존재 여부에 따라 리다이렉션 결정
         String baseUrl;
