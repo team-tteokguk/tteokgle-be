@@ -50,7 +50,12 @@ public enum ErrorCode {
     INVALID_NICKNAME(400, "M006", "유효하지 않은 닉네임입니다."),
 
     // 트랜잭션 오류 (유효하지 않은 상태)
-    INVALID_TRANSACTION_STATUS(409, "T001", "유효하지 않은 거래입니다.");
+    INVALID_TRANSACTION_STATUS(409, "T001", "유효하지 않은 거래입니다."),
+
+    // 리프레시 토큰이 없는 경우
+    REFRESHTOKEN_NOT_FOUND(404, "R001", "존재하지 않는 토큰입니다."),
+    EXPIRED_TOKEN(404, "R002", "만료된 토큰입니다."),
+    INVALID_TOKEN(404, "R003", "유효하지 않는 토큰입니다.");
 
     private final String code;
     private final String message;

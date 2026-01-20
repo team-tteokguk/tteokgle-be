@@ -6,15 +6,14 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
-import org.springframework.data.redis.core.index.Indexed;
 
 @Getter
 @NoArgsConstructor
-@RedisHash(value = "refreshToken", timeToLive = 60 * 60 * 24 * 7)
+@RedisHash(value = "refreshToken")
 public class RefreshToken {
-    @Id private String jwtRefreshToken;
+    @Id private String authKey;
 
-    @Indexed private String authKey;
+    private String jwtRefreshToken;
 
     @TimeToLive private Long ttl;
 
@@ -22,6 +21,11 @@ public class RefreshToken {
     public RefreshToken(String jwtRefreshToken, String authKey) {
         this.jwtRefreshToken = jwtRefreshToken;
         this.authKey = authKey;
-        this.ttl = 1000L * 60 * 60 * 24 * 14;
+        this.ttl = 1000L * 60 * 60 * 24 * 7;
+    }
+
+    public void update(String token) {
+        this.jwtRefreshToken = token;
+        this.ttl = 1000L * 60 * 60 * 24 * 7;
     }
 }

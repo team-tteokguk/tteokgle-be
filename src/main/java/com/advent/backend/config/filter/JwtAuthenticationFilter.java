@@ -32,11 +32,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 토큰이 존재하고 유효한지
         if (token != null && jwtTokenProvider.validateToken(token)) {
             try {
-                UUID memberId = jwtTokenProvider.getMemberId(token);
+                String memberId = jwtTokenProvider.getMemberId(token);
 
                 Member member =
                         memberRepository
-                                .findById(memberId)
+                                .findById(UUID.fromString(memberId))
                                 .orElseThrow(
                                         () -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 

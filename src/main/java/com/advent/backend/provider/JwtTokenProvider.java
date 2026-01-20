@@ -1,11 +1,15 @@
 package com.advent.backend.provider;
 
+import com.advent.backend.common.error.ErrorCode;
+import com.advent.backend.common.error.exception.BusinessException;
+import com.advent.backend.dto.TokenDto;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
-import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -52,17 +56,37 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // 토큰에서 내가 사용할 수 있는 값을 꺼내다, memberId 추출
-    public UUID getMemberId(String token) {
-        String subject =
-                Jwts.parser()
-                        .verifyWith(key)
-                        .build()
-                        .parseSignedClaims(token)
-                        .getPayload()
-                        .getSubject();
+    public TokenDto.TokenResponse createTokenResponse(String memberId) {
+        // 1. 각 토큰 생성 메서드 호출
+        String accessToken = createAccessToken(memberId);
+        String refreshToken = createRefreshToken(memberId);
 
-        return UUID.fromString(subject);
+        // 2. DTO에 담아서 반환
+        return TokenDto.TokenResponse.builder()
+                .tokenType("Bearer")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .accessTokenExpiresIn(accessTokenValiditySeconds)
+                .build();
+    }
+
+    // 토큰에서 내가 사용할 수 있는 RT값을 꺼냄
+    public String getMemberId(String token) {
+        try {
+            String subject =
+                    Jwts.parser()
+                            .verifyWith(key)
+                            .build()
+                            .parseSignedClaims(token)
+                            .getPayload()
+                            .getSubject();
+
+            return subject;
+        } catch (ExpiredJwtException e) {
+            throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
     }
 
     // 토큰 유효성 검증
@@ -70,7 +94,7 @@ public class JwtTokenProvider {
         try {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
             return true;
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
