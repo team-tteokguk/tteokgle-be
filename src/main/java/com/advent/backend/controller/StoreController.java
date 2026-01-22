@@ -118,7 +118,7 @@ public class StoreController {
      * @return
      */
     @Operation(summary = "즐겨찾기 추가하기")
-    @PostMapping("/{storeId}/subscription")
+    @PostMapping("/{storeId}/subscribe")
     public ResponseEntity<Void> subscribe(
             @PathVariable UUID storeId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
@@ -135,7 +135,7 @@ public class StoreController {
      * @return
      */
     @Operation(summary = "즐겨찾기 삭제하기")
-    @DeleteMapping("/{storeId}/subscription")
+    @DeleteMapping("/{storeId}/subscribe")
     public ResponseEntity<Void> unSubscribe(
             @PathVariable UUID storeId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {

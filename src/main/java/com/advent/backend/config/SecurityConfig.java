@@ -54,7 +54,20 @@ public class SecurityConfig {
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
-                .oauth2Login(oauth2 -> oauth2.successHandler(successHandler))
+                .oauth2Login(
+                        oauth2 ->
+                                oauth2.successHandler(successHandler)
+                                        .failureHandler(
+                                                (request, response, exception) -> {
+                                                    // 여기서 진짜 에러 메시지를 콘솔에 찍습니다.
+                                                    System.out.println(
+                                                            "❌ OAuth2 로그인 실패 원인: "
+                                                                    + exception.getMessage());
+                                                    exception.printStackTrace();
+                                                    response.sendRedirect(
+                                                            "/swagger-ui/index.html?error="
+                                                                    + exception.getMessage());
+                                                }))
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider, memberRepository),
                         UsernamePasswordAuthenticationFilter.class)

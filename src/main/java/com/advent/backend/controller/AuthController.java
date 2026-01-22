@@ -46,13 +46,6 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "로그아웃", description = "현재 사용자를 로그아웃 처리합니다. 리프레시 토큰을 무효화합니다.")
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(
-            @Parameter(hidden = true) @RequestHeader("Authorization") String authorization) {
-        return ResponseEntity.ok().build();
-    }
-
     @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.")
     @PostMapping("/refresh")
     public ResponseEntity<TokenDto.TokenResponse> refresh(HttpServletRequest request

@@ -1,35 +1,37 @@
 package com.advent.backend.service.handler;
 
+import com.advent.backend.provider.JwtTokenProvider;
 import com.advent.backend.service.RefreshTokenService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
     private final RefreshTokenService refreshTokenService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Value("${KAKAO_REST_API_KEY}")
     private String kakaoRestApiKey;
-
-    public CustomLogoutSuccessHandler(RefreshTokenService refreshTokenService) {
-        this.refreshTokenService = refreshTokenService;
-    }
 
     @Override
     public void onLogoutSuccess(
             HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException, ServletException {
         // 요청 헤더에서 refresh token 추출
-        String refreshToken = "";
+        String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+        ;
 
         // redis에서 refresh token 삭제
-        if (refreshToken != null) refreshTokenService.removeRefreshToken(refreshToken);
+        if (refreshToken != null || !refreshToken.isEmpty())
+            refreshTokenService.removeRefreshToken(refreshToken);
 
         String kakaoLogoutUrl =
                 "https://kauth.kakao.com/oauth/logout"

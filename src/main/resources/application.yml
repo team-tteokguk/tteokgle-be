@@ -48,3 +48,7 @@ spring:
         show_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
