@@ -407,10 +407,21 @@ public class StoreServiceTest {
 
         Pageable pageable = PageRequest.of(0, 2, Sort.by("createdAt").descending());
 
-        Slice<ItemDto.StoreItemResponse> result = storeService.getItems(storeA.getId(), pageable);
+        ItemDto.StoreItemSliceResponse result = storeService.getItems(storeA.getId(), pageable);
 
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getNumber()).isEqualTo(0);
+        assertThat(result.getItems()).hasSize(2);
+        assertThat(result.getPage().getPage()).isEqualTo(0);
+        assertThat(result.getStoreName()).isEqualTo(storeA.getTitle());
+        assertThat(result.getSellingItemCount()).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("상점명 변경")
+    public void should_UpdateStoreName() {
+        storeService.updateStoreName(memberA.getId(), "새 상점명");
+
+        Store updated = storeRepository.findByMemberId(memberA.getId()).orElseThrow();
+        assertThat(updated.getTitle()).isEqualTo("새 상점명");
     }
 
     @Test

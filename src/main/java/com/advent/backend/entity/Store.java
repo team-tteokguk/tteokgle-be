@@ -30,4 +30,8 @@ public class Store extends BaseTimeEntity {
     public static Store create(Member member, String title) {
         return Store.builder().member(member).title(title).build();
     }
+
+    public void updateTitle(String title) {
+        this.title = title;
+    }
 }

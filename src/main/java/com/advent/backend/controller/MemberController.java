@@ -37,9 +37,13 @@ public class MemberController {
     @Operation(summary = "닉네임 변경", description = "로그인한 회원 자신의 닉네임을 변경합니다.")
     @PatchMapping("/me")
     public ResponseEntity<Void> updateNickname(
-            @RequestParam("nickname") String newNickname,
+            @RequestBody MemberDto.NicknameUpdateRequest request, // 1. 변수명을 request로 바꾸면 덜 헷갈려요!
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        memberService.updateNickName(customUserDetails.getMember().getId(), newNickname);
+
+        // 2. 서비스에는 '객체'가 아니라 '글자(String)'를 꺼내서 전달해야 합니다.
+        // DTO가 record라면 request.nickname(), 일반 class라면 request.getNickname()을 사용하세요.
+        memberService.updateNickName(customUserDetails.getMember().getId(), request.getNickname());
+
         return ResponseEntity.noContent().build();
     }
 

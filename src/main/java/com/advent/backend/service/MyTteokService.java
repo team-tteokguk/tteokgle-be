@@ -9,10 +9,10 @@ import com.advent.backend.entity.MyItem;
 import com.advent.backend.entity.MyTteok;
 import com.advent.backend.repository.MyItemRepository;
 import com.advent.backend.repository.MyTteokRepository;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,12 +31,15 @@ public class MyTteokService {
      * @return
      */
     @Transactional(readOnly = true)
-    public List<ItemDto.PlacedItemResponse> getPlacedItems(Member member) {
+    public ItemDto.PlacedItemSliceResponse getPlacedItems(Member member, Pageable pageable) {
         MyTteok myTteok = getMyTteokOrThrow(member);
 
-        return myItemRepository.findAllByTteokIdAndIsUsed(myTteok.getId(), true).stream()
-                .map(this::toPlacedDto)
-                .collect(Collectors.toList());
+        Slice<ItemDto.PlacedItemResponse> itemSlice =
+                myItemRepository
+                        .findAllByTteokIdAndIsUsed(myTteok.getId(), true, pageable)
+                        .map(this::toPlacedDto);
+
+        return ItemDto.PlacedItemSliceResponse.from(itemSlice);
     }
 
     /**
@@ -46,12 +49,15 @@ public class MyTteokService {
      * @return
      */
     @Transactional(readOnly = true)
-    public List<ItemDto.UnplacedItemResponse> getUnplacedItems(Member member) {
+    public ItemDto.UnplacedItemSliceResponse getUnplacedItems(Member member, Pageable pageable) {
         MyTteok myTteok = getMyTteokOrThrow(member);
 
-        return myItemRepository.findAllByTteokIdAndIsUsed(myTteok.getId(), false).stream()
-                .map(this::toUnplacedDto)
-                .collect(Collectors.toList());
+        Slice<ItemDto.UnplacedItemResponse> itemSlice =
+                myItemRepository
+                        .findAllByTteokIdAndIsUsed(myTteok.getId(), false, pageable)
+                        .map(this::toUnplacedDto);
+
+        return ItemDto.UnplacedItemSliceResponse.from(itemSlice);
     }
 
     /**

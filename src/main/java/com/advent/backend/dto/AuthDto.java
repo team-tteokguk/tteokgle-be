@@ -15,9 +15,6 @@ public class AuthDto {
         @Schema(description = "액세스 토큰")
         private String accessToken;
 
-        @Schema(description = "리프레시 토큰")
-        private String refreshToken;
-
         @Schema(description = "신규 가입 여부")
         private boolean isNewMember;
     }

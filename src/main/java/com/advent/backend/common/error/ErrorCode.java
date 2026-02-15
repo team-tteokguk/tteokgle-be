@@ -24,8 +24,8 @@ public enum ErrorCode {
 
     // 1.3. 리프레시 토큰
     INVAILD_REFRESH_TOKEN(401, "R001", "유요하지 않은 리프레시 토큰입니다."),
-    REFRESH_TOKEN_NOT_FOUND(404, "R002", "존재하지 않는 리프레시 토큰입니다."),
-    EXPIRED_REFRESH_TOKEN(404, "R003", "만료된 리프레시 토큰입니다."),
+    REFRESH_TOKEN_NOT_FOUND(401, "R002", "존재하지 않는 리프레시 토큰입니다."),
+    EXPIRED_REFRESH_TOKEN(401, "R003", "만료된 리프레시 토큰입니다."),
 
     // 2. 회원 및 프로필
     // 2.1. 사용자
@@ -57,6 +57,7 @@ public enum ErrorCode {
     // 4.3. 상점
     STORE_NOT_FOUND(404, "S001", "존재하지 않는 상점입니다."),
     SELF_SUBSCRIPTION_NOT_ALLOWED(400, "S002", "본인 상점은 구독할 수 없습니다."),
+    INVALID_STORE_NAME(400, "S005", "상점명은 2자 이상 20자 이하여야 합니다."),
 
     // 4.4. 구독
     ALREADY_SUBSCRIBED(409, "S003", "이미 구독 중인 상점입니다."),

@@ -34,7 +34,8 @@ public class SecurityConfig {
         "/nickname",
         "/login", // 커스텀 로그인 페이지
         "/auth/login/kakao/**", // 사용자 정의 경로
-        "/auth/login/google/**",
+        "/auth/login/GOOGLE/**",
+        "/auth/login/**",
         "/auth/refresh", // AT 재발급
     };
 

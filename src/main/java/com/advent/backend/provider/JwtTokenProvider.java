@@ -8,6 +8,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
 import javax.crypto.SecretKey;
@@ -108,12 +109,21 @@ public class JwtTokenProvider {
         return null;
     }
 
-    // HTTP Header에서 Refreseh Token 추출
     public String resolveRefreshToken(HttpServletRequest request) {
-        String token = request.getHeader("Refresh-Token");
-        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
-            return token.substring(7);
+        // ⭐ 쿠키에서 먼저 찾기
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    System.out.println(
+                            "✅ 쿠키에서 refreshToken 찾음: "
+                                    + cookie.getValue().substring(0, 20)
+                                    + "...");
+                    return cookie.getValue();
+                }
+            }
         }
+
+        System.out.println("❌ refreshToken을 찾을 수 없음");
         return null;
     }
 }
