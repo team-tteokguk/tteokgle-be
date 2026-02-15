@@ -4,6 +4,8 @@ import static org.mockito.BDDMockito.given;
 
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.repository.MemberRepository;
+import com.advent.backend.repository.MyTteokRepository;
+import com.advent.backend.repository.StoreRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,8 @@ public class MemberServiceUnitTest {
     @InjectMocks private MemberService memberService;
 
     @Mock MemberRepository memberRepository;
+    @Mock MyTteokRepository myTteokRepository;
+    @Mock StoreRepository storeRepository;
 
     @Test
     @DisplayName("닉네임 유효성 검사를 통과합니다.")

@@ -3,7 +3,11 @@ package com.advent.backend.service;
 import com.advent.backend.common.error.ErrorCode;
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.entity.Member;
+import com.advent.backend.entity.MyTteok;
+import com.advent.backend.entity.Store;
 import com.advent.backend.repository.MemberRepository;
+import com.advent.backend.repository.MyTteokRepository;
+import com.advent.backend.repository.StoreRepository;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +18,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final MyTteokRepository myTteokRepository;
+    private final StoreRepository storeRepository;
+
+    private static final String DEFAULT_STORE_TITLE = "나의 상점";
 
     /** 닉네임 중복 체크 */
     public void validateNickname(String nickname) {
@@ -63,16 +71,31 @@ public class MemberService {
      * @param socialType
      * @return social 아이디가 있으면 기존 멤버 반환, 없으면 새 멤버 생성 후 반환
      */
+    @Transactional
     public Member registerIFNew(String socialId, Member.SocialType socialType) {
-        return memberRepository
-                .findBySocialId(socialId)
-                .orElseGet(
-                        () ->
-                                memberRepository.save(
-                                        Member.builder()
-                                                .socialId(socialId)
-                                                .socialType(socialType)
-                                                .build()));
+        Member member =
+                memberRepository
+                        .findBySocialId(socialId)
+                        .orElseGet(
+                                () ->
+                                        memberRepository.save(
+                                                Member.builder()
+                                                        .socialId(socialId)
+                                                        .socialType(socialType)
+                                                        .build()));
+
+        createDefaultAssetsIfAbsent(member);
+        return member;
+    }
+
+    private void createDefaultAssetsIfAbsent(Member member) {
+        if (!myTteokRepository.existsByMemberId(member.getId())) {
+            myTteokRepository.save(MyTteok.create(member));
+        }
+
+        if (!storeRepository.existsByMemberId(member.getId())) {
+            storeRepository.save(Store.create(member, DEFAULT_STORE_TITLE));
+        }
     }
 
     @Transactional

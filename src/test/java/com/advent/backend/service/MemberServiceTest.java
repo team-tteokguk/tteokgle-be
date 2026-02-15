@@ -7,6 +7,8 @@ import com.advent.backend.common.error.ErrorCode;
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.entity.Member;
 import com.advent.backend.repository.MemberRepository;
+import com.advent.backend.repository.MyTteokRepository;
+import com.advent.backend.repository.StoreRepository;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions.*;
@@ -21,6 +23,8 @@ public class MemberServiceTest {
     @Autowired MemberService memberService;
 
     @Autowired MemberRepository memberRepository;
+    @Autowired MyTteokRepository myTteokRepository;
+    @Autowired StoreRepository storeRepository;
 
     private Member memberA;
 
@@ -63,10 +67,12 @@ public class MemberServiceTest {
 
         Member resultMember = memberRepository.findById(member.getId()).orElseThrow();
         assertThat(resultMember.getSocialId()).isEqualTo(socialId);
+        assertThat(myTteokRepository.existsByMemberId(member.getId())).isTrue();
+        assertThat(storeRepository.existsByMemberId(member.getId())).isTrue();
     }
 
     @Test
-    @DisplayName("이미 존재하는 소셜 ID로 가입 시 기존 회원을 반환해야 한다.")
+    @DisplayName("이미 존재하는 소셜 ID로 가입 시 기존 회원을 반환하고 기본 리소스가 없으면 생성한다.")
     public void should_ReturnExist_when_Register() {
         // 있는 회원을 반환합니다.
         Member existingMember =
@@ -74,6 +80,8 @@ public class MemberServiceTest {
 
         assertThat(memberA.getId()).isEqualTo(existingMember.getId());
         assertThat(memberA.getSocialId()).isEqualTo(existingMember.getSocialId());
+        assertThat(myTteokRepository.existsByMemberId(existingMember.getId())).isTrue();
+        assertThat(storeRepository.existsByMemberId(existingMember.getId())).isTrue();
     }
 
     @Test

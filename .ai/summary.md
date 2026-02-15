@@ -1,30 +1,31 @@
-## 🤖 AI Change Summary for PR #40
+## 🤖 AI Change Summary for PR #41
 
 ## 개요
-이 변경 사항은 Spring Boot 애플리케이션에 Google OAuth2 인증 기능을 추가하고, 리프레시 토큰 유효성 검사 로직을 강화하며, 관련 오류 코드 및 서비스 로직을 수정하는 내용을 포함합니다. 주요 목적은 사용자 인증을 위한 새로운 기능을 구현하고, 기존 코드의 오류 처리 및 데이터 모델을 개선하는 것입니다.
+이번 변경 사항은 소셜 로그인 기능을 개선하고 Google 및 Kakao OAuth 인증 프로세스를 최적화하기 위해 새로운 `RestTemplateConfig` 클래스를 추가하고, `MyTteokRepository`, `MemberService`, `SocialLoginService`를 수정 및 추가하였습니다. 또한, 관련 테스트 케이스를 업데이트하여 새로운 리소스 생성 여부와 기능 검증을 강화하였습니다.
 
 ## 주요 변경 사항
-1. **ErrorCode.java 수정**: 새로운 오류 코드(`REFRESHTOKEN_NOT_FOUND`, `EXPIRED_TOKEN`, `INVALID_TOKEN`)가 추가되어 토큰 유효성 관련 오류를 처리할 수 있게 되었습니다.
-2. **TokenDto.java 추가**: 액세스 토큰 및 리프레시 토큰 정보를 포함하는 DTO 클래스가 새로 추가되었습니다.
-3. **AuthController.java 수정**: 리프레시 토큰 재발급 로직이 개선되어, 새로운 `TokenDto.TokenResponse`를 반환하도록 변경되었습니다.
-4. **JwtTokenProvider.java 추가**: JWT 관련 기능을 제공하는 클래스가 추가되었습니다.
-5. **RefreshToken.java 수정**: 리프레시 토큰 모델의 필드가 변경되고, TTL(Time To Live) 설정이 수정되었습니다.
-6. **RefreshTokenRepository.java 수정**: `findByAuthKey` 메서드가 추가되어, 인증 키로 리프레시 토큰을 조회할 수 있게 되었습니다.
-7. **RefreshTokenService.java 수정**: `isRefreshTokenValid` 메서드가 수정되어 리프레시 토큰의 유효성을 검사하는 로직이 강화되었습니다.
-8. **RedisConfig.java 수정**: Redis 설정에 `@EnableConfigurationProperties` 어노테이션이 추가되었습니다.
+1. **RestTemplateConfig 클래스 추가**: `RestTemplate` 빈을 생성하는 설정 클래스를 추가했습니다.
+2. **MyTteokRepository 수정**: `existsByMemberId(UUID memberId)` 메서드를 추가하여 특정 회원 ID의 존재 여부를 확인할 수 있게 했습니다.
+3. **MemberService 수정**:
+   - `registerIFNew` 메서드에 기본 자산을 생성하는 로직을 추가했습니다.
+   - `MyTteokRepository`와 `StoreRepository`를 주입받아 사용하도록 변경했습니다.
+4. **SocialLoginService 클래스 추가**: Google 및 Kakao 소셜 로그인을 처리하는 서비스 클래스를 새로 추가했습니다.
+5. **Google OAuth 설정 추가**: `application.yml` 파일에 Google 리디렉션 URI와 이메일 스코프가 추가되었습니다.
+6. **Kakao OAuth 설정 수정**: Kakao 리디렉션 URI가 변경되었습니다.
+7. **MemberServiceUnitTest 수정**: `MyTteokRepository`와 `StoreRepository`를 `@Mock`으로 추가하여 테스트 환경을 확장하고, `storeRepository.existsByMemberId(existingMember.getId())`에 대한 검증을 추가했습니다.
+8. **테스트 케이스 수정**: `MemberServiceTest`와 `MemberServiceUnitTest`에서 새로운 기능을 검증하기 위해 테스트를 업데이트했습니다.
 
 ## 위험/영향
-- **기능 추가**: Google OAuth2 인증 기능이 추가됨에 따라, 기존 시스템에 새로운 의존성이 생깁니다. 이로 인해 인증 관련 버그가 발생할 가능성이 있습니다.
-- **코드 변경**: 기존 코드에 대한 변경이 있으므로, 새로운 오류 코드와 Google 사용자 세부정보 처리 로직이 예상대로 작동하는지 확인해야 합니다.
-- **기능적 변경**: 기존의 단순한 유효성 검사에서 복잡한 로직으로 변경되어, 잘못된 토큰 처리 시 예외가 발생할 수 있습니다.
-- **의존성 증가**: `JwtTokenProvider`에 대한 의존성이 추가되어, 해당 클래스의 변경이 `RefreshTokenService`에 영향을 미칠 수 있습니다.
-- **성능**: Redis와의 상호작용이 추가되어 성능에 영향을 줄 수 있습니다.
+- 새로운 소셜 로그인 기능과 OAuth 설정 변경으로 인해 외부 API와의 통신이 필요해졌으며, 잘못된 설정은 인증 실패를 초래할 수 있습니다.
+- 데이터베이스에 새로운 엔티티가 생성될 수 있어 기존 데이터와의 충돌 가능성에 유의해야 합니다.
+- 새로운 리포지토리의 추가로 인해 테스트의 복잡성이 증가할 수 있으며, 올바른 Mock 설정이 이루어지지 않을 경우 테스트 실패 가능성이 있습니다.
 
 ## 테스트/검증
-- **단위 테스트**: `GoogleUserDetails`, `CustomOAuth2UserService`, 및 `RefreshTokenService`의 단위 테스트를 작성하여 새로운 기능이 올바르게 작동하는지 검증해야 합니다.
-- **통합 테스트**: 전체 OAuth2 인증 흐름 및 JWT 토큰의 유효성 검사, Redis와의 상호작용을 테스트하여 Google 인증이 정상적으로 작동하는지 확인해야 합니다.
+- `MemberServiceTest`와 `MemberServiceUnitTest`에서 새로운 기능에 대한 테스트가 추가 및 수정되었습니다.
+- 소셜 로그인 기능과 OAuth 인증 흐름에 대한 통합 테스트가 필요하며, 외부 API의 응답을 모의(mock)하여 테스트할 수 있습니다.
+- 새로운 테스트 케이스가 추가되었으므로, 모든 테스트를 실행하여 새로운 Mock 객체가 올바르게 작동하는지 확인해야 합니다.
 
-## 후속 조치
-- **문서화**: Google OAuth2 인증 기능 및 `JwtTokenProvider`의 기능에 대한 문서를 작성하여 개발자들이 쉽게 이해하고 사용할 수 있도록 해야 합니다.
-- **모니터링**: 새로운 오류 코드와 Google 인증 관련 로그를 모니터링하여 문제 발생 시 신속하게 대응할 수 있도록 해야 합니다.
-- **테스트 강화**: `RefreshTokenService`의 새로운 메서드에 대한 테스트 케이스를 작성하고, 전체 시스템에서 리프레시 토큰 관련 기능의 통합 테스트를 수행해야 합니다.
+## 후속 작업
+- 소셜 로그인 기능과 OAuth 인증 흐름에 대한 문서화 작업이 필요합니다.
+- 외부 API 호출에 대한 예외 처리를 강화하여 안정성을 높여야 합니다.
+- 추가된 Mock 객체에 대한 테스트 케이스를 작성하여 각 리포지토리의 동작을 검증할 필요가 있으며, 테스트 커버리지를 높이기 위해 다른 시나리오에 대한 테스트도 고려해야 합니다.
