@@ -25,7 +25,7 @@ public class TtoekgukController {
     @GetMapping("/me/items/placed")
     public ResponseEntity<ItemDto.PlacedItemSliceResponse> getPlacedItems(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 9) Pageable pageable) {
         return ResponseEntity.ok(
                 myTteokService.getPlacedItems(customUserDetails.getMember(), pageable));
     }
@@ -38,7 +38,7 @@ public class TtoekgukController {
     @GetMapping("/me/items/unplaced")
     public ResponseEntity<ItemDto.UnplacedItemSliceResponse> getUnplacedList(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 9) Pageable pageable) {
         return ResponseEntity.ok(
                 myTteokService.getUnplacedItems(customUserDetails.getMember(), pageable));
     }

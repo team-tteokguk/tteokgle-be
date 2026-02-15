@@ -31,7 +31,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String refreshToken = jwtTokenProvider.createRefreshToken(memberId);
 
         // refresh 토큰 redis에 저장
-        refreshTokenService.saveRefreshToken(refreshToken, memberId);
+        refreshTokenService.saveRefreshToken(memberId, refreshToken);
 
         // TODO: RT를 HttpOnly 쿠키에 저장 (보안)
 

@@ -31,7 +31,7 @@ public class Item extends BaseTimeEntity {
     @JoinColumn(name = "store_id")
     private Store store;
 
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 30)
     private String name;
 
     // 가격

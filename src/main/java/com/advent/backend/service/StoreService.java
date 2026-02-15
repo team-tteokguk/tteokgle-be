@@ -99,6 +99,16 @@ public class StoreService {
         return StoreDto.StoreResponse.from(store);
     }
 
+    @Transactional(readOnly = true)
+    public StoreDto.StoreResponse getMyStoreInfo(UUID memberId) {
+        Store store =
+                storeRepository
+                        .findByMemberId(memberId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        return StoreDto.StoreResponse.from(store);
+    }
+
     /**
      * 특정 상점의 물건을 페이지네이션으로 전달
      *
@@ -119,20 +129,39 @@ public class StoreService {
         return ItemDto.StoreItemSliceResponse.of(store.getTitle(), sellingItemCount, mappedSlice);
     }
 
+    @Transactional(readOnly = true)
+    public ItemDto.StoreItemSliceResponse getMyItems(UUID memberId, Pageable pageable) {
+        Store store =
+                storeRepository
+                        .findByMemberId(memberId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        Slice<Item> itemSlice = itemRepository.findAllByStoreId(store.getId(), pageable);
+        Slice<ItemDto.StoreItemResponse> mappedSlice =
+                itemSlice.map(ItemDto.StoreItemResponse::from);
+        long sellingItemCount = itemRepository.countByStoreIdAndIsAvailableTrue(store.getId());
+
+        return ItemDto.StoreItemSliceResponse.of(store.getTitle(), sellingItemCount, mappedSlice);
+    }
+
     /** 상점 주인이 가판대에 상품을 진열한다 (상품을 등록) */
     @Transactional
     public ItemDto.StoreItemResponse publishItem(UUID storeId, ItemDto.ItemCreateRequest request) {
+        validateItemCreateRequest(request);
+
         Store store =
                 storeRepository
                         .findById(storeId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
+        String imageUrl = request.getImageUrl() == null ? "" : request.getImageUrl();
+
         Item savedItem =
                 itemRepository.save(
                         Item.builder()
                                 .store(store)
-                                .name(request.getName())
-                                .imageUrl(request.getImageUrl())
+                                .name(request.getName().trim())
+                                .imageUrl(imageUrl)
                                 .contentType(request.getContentType())
                                 .contentData(request.getMediaUrl())
                                 .content(request.getContent())
@@ -140,6 +169,20 @@ public class StoreService {
                                 .build());
 
         return ItemDto.StoreItemResponse.from(savedItem);
+    }
+
+    private void validateItemCreateRequest(ItemDto.ItemCreateRequest request) {
+        if (request == null
+                || request.getName() == null
+                || request.getName().isBlank()
+                || request.getContentType() == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        String trimmedName = request.getName().trim();
+        if (trimmedName.length() > 30) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
     }
 
     /** 상점 주인이 판매 중인 물건을 삭제 */

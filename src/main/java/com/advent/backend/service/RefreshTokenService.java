@@ -5,6 +5,7 @@ import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.dto.TokenDto;
 import com.advent.backend.entity.RefreshToken;
 import com.advent.backend.provider.JwtTokenProvider;
+import com.advent.backend.repository.MemberRepository;
 import com.advent.backend.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final MemberRepository memberRepository;
 
     // 리프래시 토큰 저장
     @Transactional
@@ -60,6 +62,13 @@ public class RefreshTokenService {
         if (!savedToken.getJwtRefreshToken().equals(refreshToken)) {
             // TODO: 보안상 로그까지 남기는 것이 좋음
             throw new BusinessException(ErrorCode.INVAILD_REFRESH_TOKEN);
+        }
+
+        // 회원 데이터가 사라진 경우(예: 개발환경 DB 재생성) refresh 성공처럼 보이더라도
+        // 이후 모든 요청이 401이 되므로 여기서 명시적으로 차단한다.
+        if (!memberRepository.existsById(java.util.UUID.fromString(memberId))) {
+            refreshTokenRepository.delete(savedToken);
+            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
 
         // 6. 일치한다면 새 토큰 생성

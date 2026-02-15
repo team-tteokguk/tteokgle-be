@@ -15,11 +15,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
@@ -59,6 +61,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             } catch (BusinessException e) {
+                log.debug("JWT 인증 실패: {}", e.getErrorCode().getMessage());
+                SecurityContextHolder.clearContext();
+            } catch (Exception e) {
+                log.debug("JWT 인증 중 예외 발생: {}", e.getMessage());
                 SecurityContextHolder.clearContext();
             }
         }
