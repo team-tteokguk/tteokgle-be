@@ -2,12 +2,14 @@ package com.advent.backend.controller;
 
 import com.advent.backend.dto.ItemDto;
 import com.advent.backend.entity.Member;
+import com.advent.backend.security.CustomUserDetails;
 import com.advent.backend.service.MyTteokService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -22,16 +24,20 @@ public class MyTteokController {
 
     @Operation(summary = "배치된 고명 리스트 조회 (떡국 위)")
     @GetMapping("/placed")
-    public ResponseEntity<List<ItemDto.PlacedItemResponse>> getPlacedItems(
-            @AuthenticationPrincipal Member member) {
-        return ResponseEntity.ok(myTteokService.getPlacedItems(member));
+    public ResponseEntity<ItemDto.PlacedItemSliceResponse> getPlacedItems(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(
+                myTteokService.getPlacedItems(customUserDetails.getMember(), pageable));
     }
 
     @Operation(summary = "인벤토리(바텀시트) 고명 리스트 조회")
     @GetMapping("/unplaced")
-    public ResponseEntity<List<ItemDto.UnplacedItemResponse>> getUnplacedItems(
-            @AuthenticationPrincipal Member member) {
-        return ResponseEntity.ok(myTteokService.getUnplacedItems(member));
+    public ResponseEntity<ItemDto.UnplacedItemSliceResponse> getUnplacedItems(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(
+                myTteokService.getUnplacedItems(customUserDetails.getMember(), pageable));
     }
 
     @Operation(summary = "고명 배치 및 수납 (좌표/상태 수정)")

@@ -19,7 +19,7 @@ public class RefreshTokenService {
 
     // 리프래시 토큰 저장
     @Transactional
-    public void saveRefreshToken(String refreshToken, String authKey) {
+    public void saveRefreshToken(String authKey, String refreshToken) {
         RefreshToken token =
                 RefreshToken.builder().jwtRefreshToken(refreshToken).authKey(authKey).build();
         refreshTokenRepository.save(token);

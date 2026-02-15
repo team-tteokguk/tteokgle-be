@@ -21,4 +21,13 @@ public class StoreDto {
             return StoreResponse.builder().id(store.getId()).name(store.getTitle()).build();
         }
     }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class StoreNameUpdateRequest {
+        @Schema(description = "변경할 상점명")
+        private String name;
+    }
 }

@@ -38,9 +38,18 @@ public class StoreController {
     // 2. 고명 리스트 조회하기
     @Operation(summary = "고명 리스트 조회하기")
     @GetMapping("/{storeId}/items")
-    public ResponseEntity<Slice<ItemDto.StoreItemResponse>> getItems(
+    public ResponseEntity<ItemDto.StoreItemSliceResponse> getItems(
             @PathVariable UUID storeId, @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(storeService.getItems(storeId, pageable));
+    }
+
+    @Operation(summary = "내 상점명 변경")
+    @PatchMapping("/me")
+    public ResponseEntity<Void> updateStoreName(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestBody StoreDto.StoreNameUpdateRequest request) {
+        storeService.updateStoreName(customUserDetails.getMember().getId(), request.getName());
+        return ResponseEntity.noContent().build();
     }
 
     // 3. 고명 등록하기

@@ -2,12 +2,14 @@ package com.advent.backend.controller;
 
 import com.advent.backend.dto.ItemDto;
 import com.advent.backend.security.CustomUserDetails;
+import com.advent.backend.service.MyTteokService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +19,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/ttoekguk")
 @RequiredArgsConstructor
 public class TtoekgukController {
+    private final MyTteokService myTteokService;
 
     @Operation(summary = "배치된 고명 리스트 조회", description = "배치된 고명 리스트를 조회합니다.")
     @GetMapping("/me/items/placed")
-    public ResponseEntity<List<ItemDto.PlacedItemResponse>> getPlacedItems(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ItemDto.PlacedItemSliceResponse> getPlacedItems(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(
+                myTteokService.getPlacedItems(customUserDetails.getMember(), pageable));
     }
 
     @Operation(
@@ -32,17 +36,11 @@ public class TtoekgukController {
             // 사용 O, X 여부 상관없이 다 불러올 수도 있음.
             )
     @GetMapping("/me/items/unplaced")
-    public ResponseEntity<List<ItemDto.UnplacedItemResponse>> getUnplacedList(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        ItemDto.UnplacedItemResponse response =
-                ItemDto.UnplacedItemResponse.builder()
-                        .id(UUID.randomUUID())
-                        .name("고명2")
-                        .imageUrl("https://...")
-                        .isRead(false)
-                        .build();
-
-        return ResponseEntity.ok(List.of(response));
+    public ResponseEntity<ItemDto.UnplacedItemSliceResponse> getUnplacedList(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(
+                myTteokService.getUnplacedItems(customUserDetails.getMember(), pageable));
     }
 
     @Operation(summary = "고명 배치 및 수납", description = "고명의 좌표를 바꾸거나 배치 상태를 변경합니다.")

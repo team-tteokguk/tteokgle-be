@@ -28,6 +28,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MyTteokService 단위 테스트")
@@ -46,12 +49,14 @@ class MyTteokServiceTest {
     private UUID memberId;
     private UUID myTteokId;
     private UUID myItemId;
+    private Pageable pageable;
 
     @BeforeEach
     void setUp() {
         memberId = UUID.randomUUID();
         myTteokId = UUID.randomUUID();
         myItemId = UUID.randomUUID();
+        pageable = PageRequest.of(0, 10);
 
         member = Member.builder().id(memberId).nickname("테스트유저").build();
 
@@ -132,29 +137,33 @@ class MyTteokServiceTest {
                             .build();
 
             given(myTteokRepository.findByMemberId(memberId)).willReturn(Optional.of(myTteok));
-            given(myItemRepository.findAllByTteokIdAndIsUsed(myTteokId, true))
-                    .willReturn(List.of(placedItem));
+            given(myItemRepository.findAllByTteokIdAndIsUsed(myTteokId, true, pageable))
+                    .willReturn(new SliceImpl<>(List.of(placedItem), pageable, false));
 
-            List<ItemDto.PlacedItemResponse> result = myTteokService.getPlacedItems(member);
+            ItemDto.PlacedItemSliceResponse result =
+                    myTteokService.getPlacedItems(member, pageable);
 
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getName()).isEqualTo("황금계란");
-            assertThat(result.get(0).getPosX()).isEqualTo(10.5f);
-            assertThat(result.get(0).isUsed()).isTrue();
+            assertThat(result.getItems()).hasSize(1);
+            assertThat(result.getItems().get(0).getName()).isEqualTo("황금계란");
+            assertThat(result.getItems().get(0).getPosX()).isEqualTo(10.5f);
+            assertThat(result.getItems().get(0).isUsed()).isTrue();
+            assertThat(result.getPage().isHasNext()).isFalse();
         }
 
         @Test
         @DisplayName("미배치 고명 리스트를 조회한다")
         void getUnplacedItems_Success() {
             given(myTteokRepository.findByMemberId(memberId)).willReturn(Optional.of(myTteok));
-            given(myItemRepository.findAllByTteokIdAndIsUsed(myTteokId, false))
-                    .willReturn(List.of(myItem));
+            given(myItemRepository.findAllByTteokIdAndIsUsed(myTteokId, false, pageable))
+                    .willReturn(new SliceImpl<>(List.of(myItem), pageable, false));
 
-            List<ItemDto.UnplacedItemResponse> result = myTteokService.getUnplacedItems(member);
+            ItemDto.UnplacedItemSliceResponse result =
+                    myTteokService.getUnplacedItems(member, pageable);
 
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getName()).isEqualTo("황금계란");
-            assertThat(result.get(0).isRead()).isFalse();
+            assertThat(result.getItems()).hasSize(1);
+            assertThat(result.getItems().get(0).getName()).isEqualTo("황금계란");
+            assertThat(result.getItems().get(0).isRead()).isFalse();
+            assertThat(result.getPage().isHasNext()).isFalse();
         }
     }
 

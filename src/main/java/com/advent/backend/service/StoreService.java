@@ -105,14 +105,18 @@ public class StoreService {
      * @return ItemDto.StoreItemResponse
      */
     @Transactional(readOnly = true)
-    public Slice<ItemDto.StoreItemResponse> getItems(UUID storeId, Pageable pageable) {
-        if (!storeRepository.existsById(storeId)) {
-            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
-        }
+    public ItemDto.StoreItemSliceResponse getItems(UUID storeId, Pageable pageable) {
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         Slice<Item> itemSlice = itemRepository.findAllByStoreId(storeId, pageable);
+        Slice<ItemDto.StoreItemResponse> mappedSlice =
+                itemSlice.map(ItemDto.StoreItemResponse::from);
+        long sellingItemCount = itemRepository.countByStoreIdAndIsAvailableTrue(storeId);
 
-        return itemSlice.map(ItemDto.StoreItemResponse::from);
+        return ItemDto.StoreItemSliceResponse.of(store.getTitle(), sellingItemCount, mappedSlice);
     }
 
     /** 상점 주인이 가판대에 상품을 진열한다 (상품을 등록) */
@@ -147,5 +151,28 @@ public class StoreService {
                         .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
 
         itemRepository.delete(item);
+    }
+
+    @Transactional
+    public void updateStoreName(UUID memberId, String storeName) {
+        validateStoreName(storeName);
+
+        Store store =
+                storeRepository
+                        .findByMemberId(memberId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        store.updateTitle(storeName.trim());
+    }
+
+    private void validateStoreName(String storeName) {
+        if (storeName == null || storeName.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_STORE_NAME);
+        }
+
+        String trimmed = storeName.trim();
+        if (trimmed.length() < 2 || trimmed.length() > 20) {
+            throw new BusinessException(ErrorCode.INVALID_STORE_NAME);
+        }
     }
 }

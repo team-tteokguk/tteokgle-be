@@ -2,12 +2,14 @@ package com.advent.backend.dto;
 
 import com.advent.backend.entity.Item;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.springframework.data.domain.Slice;
 
 public class ItemDto {
     // 공통 정보
@@ -50,6 +52,65 @@ public class ItemDto {
         }
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SliceInfo {
+        @Schema(description = "현재 페이지 번호(0-base)")
+        private int page;
+
+        @Schema(description = "요청한 페이지 크기")
+        private int size;
+
+        @Schema(description = "현재 페이지 데이터 개수")
+        private int numberOfElements;
+
+        @Schema(description = "다음 페이지 존재 여부")
+        private boolean hasNext;
+
+        @Schema(description = "첫 페이지 여부")
+        private boolean first;
+
+        public static SliceInfo from(Slice<?> slice) {
+            return SliceInfo.builder()
+                    .page(slice.getNumber())
+                    .size(slice.getSize())
+                    .numberOfElements(slice.getNumberOfElements())
+                    .hasNext(slice.hasNext())
+                    .first(slice.isFirst())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StoreItemSliceResponse {
+        @Schema(description = "상점 이름")
+        private String storeName;
+
+        @Schema(description = "판매중 고명 개수")
+        private long sellingItemCount;
+
+        @Schema(description = "고명 목록")
+        private List<StoreItemResponse> items;
+
+        @Schema(description = "페이지 정보")
+        private SliceInfo page;
+
+        public static StoreItemSliceResponse of(
+                String storeName, long sellingItemCount, Slice<StoreItemResponse> itemSlice) {
+            return StoreItemSliceResponse.builder()
+                    .storeName(storeName)
+                    .sellingItemCount(sellingItemCount)
+                    .items(itemSlice.getContent())
+                    .page(SliceInfo.from(itemSlice))
+                    .build();
+        }
+    }
+
     // 2. [응답] 나의 떡국용 배치된 고명 정보 조회
     @Getter
     @SuperBuilder
@@ -77,6 +138,44 @@ public class ItemDto {
     public static class UnplacedItemResponse extends ItemBase {
         @Schema(description = "컨텐츠 확인 여부")
         private boolean isRead;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PlacedItemSliceResponse {
+        @Schema(description = "배치된 고명 목록")
+        private List<PlacedItemResponse> items;
+
+        @Schema(description = "페이지 정보")
+        private SliceInfo page;
+
+        public static PlacedItemSliceResponse from(Slice<PlacedItemResponse> itemSlice) {
+            return PlacedItemSliceResponse.builder()
+                    .items(itemSlice.getContent())
+                    .page(SliceInfo.from(itemSlice))
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UnplacedItemSliceResponse {
+        @Schema(description = "미배치 고명 목록")
+        private List<UnplacedItemResponse> items;
+
+        @Schema(description = "페이지 정보")
+        private SliceInfo page;
+
+        public static UnplacedItemSliceResponse from(Slice<UnplacedItemResponse> itemSlice) {
+            return UnplacedItemSliceResponse.builder()
+                    .items(itemSlice.getContent())
+                    .page(SliceInfo.from(itemSlice))
+                    .build();
+        }
     }
 
     // 4. [응답] 나의 떡국에서 고명 컨텐츠 조회
