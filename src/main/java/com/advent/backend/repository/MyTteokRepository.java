@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MyTteokRepository extends JpaRepository<MyTteok, UUID> {
     Optional<MyTteok> findByMemberId(UUID memberId);
+
+    boolean existsByMemberId(UUID memberId);
 }
