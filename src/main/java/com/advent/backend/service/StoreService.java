@@ -99,6 +99,16 @@ public class StoreService {
         return StoreDto.StoreResponse.from(store);
     }
 
+    @Transactional(readOnly = true)
+    public StoreDto.StoreResponse getMyStoreInfo(UUID memberId) {
+        Store store =
+                storeRepository
+                        .findByMemberId(memberId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        return StoreDto.StoreResponse.from(store);
+    }
+
     /**
      * 특정 상점의 물건을 페이지네이션으로 전달
      *
@@ -115,6 +125,21 @@ public class StoreService {
         Slice<ItemDto.StoreItemResponse> mappedSlice =
                 itemSlice.map(ItemDto.StoreItemResponse::from);
         long sellingItemCount = itemRepository.countByStoreIdAndIsAvailableTrue(storeId);
+
+        return ItemDto.StoreItemSliceResponse.of(store.getTitle(), sellingItemCount, mappedSlice);
+    }
+
+    @Transactional(readOnly = true)
+    public ItemDto.StoreItemSliceResponse getMyItems(UUID memberId, Pageable pageable) {
+        Store store =
+                storeRepository
+                        .findByMemberId(memberId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        Slice<Item> itemSlice = itemRepository.findAllByStoreId(store.getId(), pageable);
+        Slice<ItemDto.StoreItemResponse> mappedSlice =
+                itemSlice.map(ItemDto.StoreItemResponse::from);
+        long sellingItemCount = itemRepository.countByStoreIdAndIsAvailableTrue(store.getId());
 
         return ItemDto.StoreItemSliceResponse.of(store.getTitle(), sellingItemCount, mappedSlice);
     }

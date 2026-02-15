@@ -35,12 +35,29 @@ public class StoreController {
         return ResponseEntity.ok(storeService.getStoreInfo(storeId));
     }
 
+    @Operation(summary = "내 상점 정보", description = "로그인한 회원의 상점 정보를 불러옵니다.")
+    @GetMapping("/me")
+    public ResponseEntity<StoreDto.StoreResponse> getMyStoreInfo(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(
+                storeService.getMyStoreInfo(customUserDetails.getMember().getId()));
+    }
+
     // 2. 고명 리스트 조회하기
     @Operation(summary = "고명 리스트 조회하기")
     @GetMapping("/{storeId}/items")
     public ResponseEntity<ItemDto.StoreItemSliceResponse> getItems(
             @PathVariable UUID storeId, @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(storeService.getItems(storeId, pageable));
+    }
+
+    @Operation(summary = "내 상점 고명 리스트 조회하기")
+    @GetMapping("/me/items")
+    public ResponseEntity<ItemDto.StoreItemSliceResponse> getMyItems(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(
+                storeService.getMyItems(customUserDetails.getMember().getId(), pageable));
     }
 
     @Operation(summary = "내 상점명 변경")

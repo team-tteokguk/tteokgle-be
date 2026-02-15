@@ -36,3 +36,12 @@ spring:
         format_sql: true
         show_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+aws:
+  s3:
+    region: ${AWS_REGION:ap-northeast-2}
+    bucket: ${AWS_S3_BUCKET:test-bucket}
+    access-key: ${AWS_ACCESS_KEY_ID:test-access-key}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:test-secret-key}
+    presign-expiration-seconds: 300
+    public-base-url: ${AWS_S3_PUBLIC_BASE_URL:}
