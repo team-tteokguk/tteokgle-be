@@ -16,14 +16,16 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "http://localhost:5173/auth/google/callback"
             scope:
               - profile
+              - email
           kakao:
             client-id: ${KAKAO_REST_API_KEY}
             client-secret: ${KAKAO_SECRET}
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
-            redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
+            redirect-uri: "http://localhost:5173/auth/kakao/callback"
             client-name: Kakao
             scope:
               - profile_nickname
