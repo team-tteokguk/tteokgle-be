@@ -7,6 +7,8 @@ import com.advent.backend.dto.StoreDto;
 import com.advent.backend.entity.*;
 import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.repository.*;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,9 @@ public class StoreService {
                 itemRepository
                         .findById(itemId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
+        if (!item.isAvailable() || item.getQuantity() <= 0) {
+            throw new BusinessException(ErrorCode.INVALID_TRANSACTION_STATUS);
+        }
 
         // 2. 판매자 ID 조회
         UUID sellerId = item.getStore().getMember().getId();
@@ -73,6 +78,7 @@ public class StoreService {
 
         // 6. MyItem 생성 후 내 떡국에 저장
         saveMyItem(buyer, item, receiverTteok);
+        item.decreaseQuantity();
 
         // 7. 성공 시 알림 이벤트 발행
         applicationEventPublisher.publishEvent(new PurchaseEvent(buyer, seller, item.getName()));
@@ -154,17 +160,29 @@ public class StoreService {
                         .findById(storeId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
-        String imageUrl = request.getImageUrl() == null ? "" : request.getImageUrl();
+        String imageUrl = request.getImageUrl() == null ? null : request.getImageUrl();
+        String trimmedName = request.getName().trim();
+        int sellCounts = request.getSellCounts() == null ? 1 : request.getSellCounts();
+        Item.ContentType contentType =
+                request.getContentType() == null ? Item.ContentType.NONE : request.getContentType();
+
+        Item existingItem = findSameContentItem(storeId, trimmedName, imageUrl, request);
+        if (existingItem != null) {
+            existingItem.addQuantity(sellCounts);
+            return ItemDto.StoreItemResponse.from(existingItem);
+        }
 
         Item savedItem =
                 itemRepository.save(
                         Item.builder()
                                 .store(store)
-                                .name(request.getName().trim())
+                                .name(trimmedName)
                                 .imageUrl(imageUrl)
-                                .contentType(request.getContentType())
+                                .contentType(contentType)
                                 .contentData(request.getMediaUrl())
                                 .content(request.getContent())
+                                .quantity(sellCounts)
+                                .isAvailable(sellCounts > 0)
                                 .cost(100) // TODO: 가격 정책
                                 .build());
 
@@ -172,10 +190,7 @@ public class StoreService {
     }
 
     private void validateItemCreateRequest(ItemDto.ItemCreateRequest request) {
-        if (request == null
-                || request.getName() == null
-                || request.getName().isBlank()
-                || request.getContentType() == null) {
+        if (request == null || request.getName() == null || request.getName().isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
@@ -183,6 +198,24 @@ public class StoreService {
         if (trimmedName.length() > 30) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
+
+        if (request.getSellCounts() != null && request.getSellCounts() < 0) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+    }
+
+    private Item findSameContentItem(
+            UUID storeId, String itemName, String imageUrl, ItemDto.ItemCreateRequest request) {
+        List<Item> existingItems = itemRepository.findAllByStoreId(storeId);
+
+        return existingItems.stream()
+                .filter(item -> Objects.equals(item.getName(), itemName))
+                .filter(item -> item.getContentType() == request.getContentType())
+                .filter(item -> Objects.equals(item.getImageUrl(), imageUrl))
+                .filter(item -> Objects.equals(item.getContentData(), request.getMediaUrl()))
+                .filter(item -> Objects.equals(item.getContent(), request.getContent()))
+                .findFirst()
+                .orElse(null);
     }
 
     /** 상점 주인이 판매 중인 물건을 삭제 */

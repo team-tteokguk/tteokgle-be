@@ -1,6 +1,8 @@
 package com.advent.backend.dto;
 
 import com.advent.backend.entity.Item;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.UUID;
@@ -218,6 +220,11 @@ public class ItemDto {
 
         @Schema(description = "본문 내용")
         private String content;
+
+        @Schema(description = "재고 수량", example = "5")
+        @JsonProperty("sellCounts")
+        @JsonAlias({"sellCount", "quantity", "stock"})
+        private Integer sellCounts;
     }
 
     @Getter
