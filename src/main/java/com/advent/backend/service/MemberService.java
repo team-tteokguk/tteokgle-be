@@ -61,7 +61,20 @@ public class MemberService {
                         .findById(MemberId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
+        String previousNickname = member.getNickname();
         member.updateNickname(nickname);
+
+        // 최초 닉네임 설정 시점에는 상점명을 "<닉네임>의 상점"으로 초기화한다.
+        if (previousNickname == null || previousNickname.isBlank()) {
+            storeRepository
+                    .findByMemberId(MemberId)
+                    .ifPresent(
+                            store -> {
+                                if (DEFAULT_STORE_TITLE.equals(store.getTitle())) {
+                                    store.updateTitle(buildInitialStoreTitle(nickname));
+                                }
+                            });
+        }
     }
 
     /**
@@ -94,8 +107,16 @@ public class MemberService {
         }
 
         if (!storeRepository.existsByMemberId(member.getId())) {
-            storeRepository.save(Store.create(member, DEFAULT_STORE_TITLE));
+            storeRepository.save(
+                    Store.create(member, buildInitialStoreTitle(member.getNickname())));
         }
+    }
+
+    private String buildInitialStoreTitle(String nickname) {
+        if (nickname == null || nickname.isBlank()) {
+            return DEFAULT_STORE_TITLE;
+        }
+        return nickname + "의 상점";
     }
 
     @Transactional
