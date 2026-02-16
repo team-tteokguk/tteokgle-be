@@ -44,7 +44,7 @@ public class Item extends BaseTimeEntity {
     private Integer quantity = 0;
 
     // 고명 이미지
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String imageUrl;
 
     // 컨텐츠 타입
@@ -80,5 +80,18 @@ public class Item extends BaseTimeEntity {
 
     public void addQuantity(int quantity) {
         this.quantity += quantity;
+        if (this.quantity > 0) {
+            this.isAvailable = true;
+        }
+    }
+
+    public void decreaseQuantity() {
+        if (this.quantity <= 0) {
+            throw new IllegalStateException("재고가 없습니다.");
+        }
+        this.quantity -= 1;
+        if (this.quantity == 0) {
+            this.isAvailable = false;
+        }
     }
 }
