@@ -117,8 +117,8 @@ public class GuestBookService {
      */
     private void validateDeletePermission(GuestBook guestBook, Member member) {
         UUID requestId = member.getId();
-        UUID writerId = guestBook.getId();
-        UUID storeOwnerId = guestBook.getMember().getId();
+        UUID writerId = guestBook.getMember().getId();
+        UUID storeOwnerId = guestBook.getStore().getMember().getId();
 
         if (!requestId.equals(writerId) && !requestId.equals(storeOwnerId)) {
             throw new BusinessException(ErrorCode.GUESTBOOK_ACCESS_DENIED);

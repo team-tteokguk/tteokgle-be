@@ -46,6 +46,9 @@ public class MemberDto {
         @Schema(description = "닉네임")
         private String nickname;
 
+        @Schema(description = "프로필 이미지 URL")
+        private String profileImage;
+
         @Schema(description = "보유 엽전")
         private int point;
 
@@ -57,6 +60,7 @@ public class MemberDto {
                     .memberId(member.getId())
                     .socailId(member.getSocialId())
                     .nickname(member.getNickname())
+                    .profileImage(member.getProfileImage())
                     .point(member.getPoint())
                     .socialType(member.getSocialType())
                     .createdAt(member.getCreatedAt())
