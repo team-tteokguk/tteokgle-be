@@ -93,10 +93,7 @@ public class StoreController {
     @GetMapping("/{storeId}/guestbooks")
     public ResponseEntity<Slice<GuestBookDto.GuestBookResponse>> getGuestBookInfo(
             @PathVariable UUID storeId, @PageableDefault(size = 10) Pageable pageable) {
-        guestBookService.getGuestBooks(storeId, pageable);
-
-        // 추후 Slice
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(guestBookService.getGuestBooks(storeId, pageable));
     }
 
     // 2. 방명록 작성하기
@@ -106,22 +103,23 @@ public class StoreController {
             @PathVariable UUID storeId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestBody GuestBookDto.GuestBookRequest guestBookRequest) {
-        //        guestBookService.createGuestBook(storeId, customUserDetails.getMember(),
-        // guestBookRequest)
-
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(
+                guestBookService.createGuestBook(
+                        storeId, customUserDetails.getMember(), guestBookRequest));
     }
 
     // 3. 방명록 수정하기
     @Operation(summary = "방명록 수정하기")
-    @PatchMapping("/{storeId}/guestbooks/{guestbookId}")
+    @RequestMapping(
+            value = "/{storeId}/guestbooks/{guestbookId}",
+            method = {RequestMethod.PATCH, RequestMethod.PUT})
     public ResponseEntity<GuestBookDto.GuestBookResponse> updateGuestBook(
             @PathVariable UUID guestbookId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestBody GuestBookDto.GuestBookRequest request) {
-        guestBookService.updateGuestBook(guestbookId, customUserDetails.getMember(), request);
-
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(
+                guestBookService.updateGuestBook(
+                        guestbookId, customUserDetails.getMember(), request));
     }
 
     // 4. 방명록 삭제하기

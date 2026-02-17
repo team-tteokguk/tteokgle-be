@@ -38,6 +38,10 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = true, unique = true)
     private String nickname;
 
+    // 프로필 이미지 URL
+    @Column(nullable = true)
+    private String profileImage;
+
     // 보유 엽전
     @Column(nullable = false)
     @Builder.Default
