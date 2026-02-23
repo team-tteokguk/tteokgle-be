@@ -43,6 +43,17 @@ public class StoreController {
                 storeService.getMyStoreInfo(customUserDetails.getMember().getId()));
     }
 
+    @Operation(summary = "상점 검색", description = "다른 사람의 닉네임 또는 상점명으로 검색합니다.")
+    @GetMapping("/search")
+    public ResponseEntity<Slice<StoreDto.StoreSummaryResponse>> searchStores(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestParam String keyword,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(
+                storeService.searchStores(
+                        customUserDetails.getMember().getId(), keyword, pageable));
+    }
+
     // 2. 고명 리스트 조회하기
     @Operation(summary = "고명 리스트 조회하기")
     @GetMapping("/{storeId}/items")
@@ -61,7 +72,9 @@ public class StoreController {
     }
 
     @Operation(summary = "내 상점명 변경")
-    @PatchMapping("/me")
+    @RequestMapping(
+            value = "/me",
+            method = {RequestMethod.PATCH, RequestMethod.PUT})
     public ResponseEntity<Void> updateStoreName(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestBody StoreDto.StoreNameUpdateRequest request) {
@@ -166,5 +179,14 @@ public class StoreController {
         subscriptionService.unsubscribe(customUserDetails.getMember().getId(), storeId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "내 즐겨찾기 목록 조회")
+    @GetMapping("/me/favorites")
+    public ResponseEntity<Slice<StoreDto.StoreSummaryResponse>> getMyFavorites(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(
+                storeService.getMyFavoriteStores(customUserDetails.getMember().getId(), pageable));
     }
 }

@@ -25,7 +25,21 @@ public class MemberService {
 
     /** 닉네임 중복 체크 */
     public void validateNickname(String nickname) {
-        // 1. 길이 체크 (2 ~ 10자)
+        validateNicknameFormat(nickname);
+
+        // 3. 중복 체크
+        if (memberRepository.existsByNickname(nickname)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+    }
+
+    public boolean isNicknameDuplicated(String nickname) {
+        validateNicknameFormat(nickname);
+        return memberRepository.existsByNickname(nickname);
+    }
+
+    private void validateNicknameFormat(String nickname) {
+        // 1. 길이 체크 (2 ~ 12자)
         if (nickname == null || nickname.length() > 12 || nickname.length() < 2) {
             throw new BusinessException(ErrorCode.INVALID_NICKNAME_LENGTH);
         }
@@ -33,11 +47,6 @@ public class MemberService {
         // 2. 금지어 체크
         if (containsRestrictedWord(nickname)) {
             throw new BusinessException(ErrorCode.RESTRICTED_NICKNAME);
-        }
-
-        // 3. 중복 체크
-        if (memberRepository.existsByNickname(nickname)) {
-            throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
         }
     }
 

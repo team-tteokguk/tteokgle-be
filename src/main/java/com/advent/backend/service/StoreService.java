@@ -7,14 +7,20 @@ import com.advent.backend.dto.StoreDto;
 import com.advent.backend.entity.*;
 import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.repository.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,6 +119,37 @@ public class StoreService {
                         .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         return StoreDto.StoreResponse.from(store);
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<StoreDto.StoreSummaryResponse> searchStores(
+            UUID memberId, String keyword, Pageable pageable) {
+        String trimmedKeyword = keyword == null ? "" : keyword.trim();
+        if (trimmedKeyword.isEmpty()) {
+            return new SliceImpl<>(Collections.emptyList(), pageable, false);
+        }
+
+        Slice<Store> stores =
+                storeRepository.searchByKeywordExcludingMemberId(
+                        memberId, trimmedKeyword, pageable);
+        return toStoreSummarySlice(memberId, stores);
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<StoreDto.StoreSummaryResponse> getMyFavoriteStores(
+            UUID memberId, Pageable pageable) {
+        Slice<Subscription> subscriptions =
+                subscriptionRepository.findAllByMemberId(memberId, pageable);
+        List<Store> stores =
+                subscriptions.getContent().stream().map(Subscription::getStore).toList();
+
+        if (stores.isEmpty()) {
+            return new SliceImpl<>(Collections.emptyList(), pageable, subscriptions.hasNext());
+        }
+
+        List<StoreDto.StoreSummaryResponse> content =
+                buildStoreSummaryResponses(stores, new HashSet<>(extractStoreIds(stores)));
+        return new SliceImpl<>(content, pageable, subscriptions.hasNext());
     }
 
     /**
@@ -250,5 +287,59 @@ public class StoreService {
         if (trimmed.length() < 2 || trimmed.length() > 20) {
             throw new BusinessException(ErrorCode.INVALID_STORE_NAME);
         }
+    }
+
+    private Slice<StoreDto.StoreSummaryResponse> toStoreSummarySlice(
+            UUID memberId, Slice<Store> stores) {
+        List<Store> content = stores.getContent();
+        if (content.isEmpty()) {
+            return new SliceImpl<>(Collections.emptyList(), stores.getPageable(), stores.hasNext());
+        }
+
+        List<UUID> storeIds = extractStoreIds(content);
+        Set<UUID> subscribedStoreIds =
+                new HashSet<>(subscriptionRepository.findSubscribedStoreIds(memberId, storeIds));
+        List<StoreDto.StoreSummaryResponse> responses =
+                buildStoreSummaryResponses(content, subscribedStoreIds);
+
+        return new SliceImpl<>(responses, stores.getPageable(), stores.hasNext());
+    }
+
+    private List<StoreDto.StoreSummaryResponse> buildStoreSummaryResponses(
+            List<Store> stores, Set<UUID> subscribedStoreIds) {
+        List<UUID> storeIds = extractStoreIds(stores);
+        Map<UUID, Long> sellingItemTypeCounts = countSellingItemTypes(storeIds);
+
+        return stores.stream()
+                .map(
+                        store ->
+                                StoreDto.StoreSummaryResponse.builder()
+                                        .storeId(store.getId())
+                                        .nickname(store.getMember().getNickname())
+                                        .storeName(store.getTitle())
+                                        .profileImage(store.getMember().getProfileImage())
+                                        .sellingItemTypeCount(
+                                                sellingItemTypeCounts.getOrDefault(
+                                                        store.getId(), 0L))
+                                        .favorite(subscribedStoreIds.contains(store.getId()))
+                                        .build())
+                .toList();
+    }
+
+    private List<UUID> extractStoreIds(List<Store> stores) {
+        return stores.stream().map(Store::getId).toList();
+    }
+
+    private Map<UUID, Long> countSellingItemTypes(List<UUID> storeIds) {
+        if (storeIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Object[]> rows = itemRepository.countAvailableItemTypesByStoreIds(storeIds);
+        Map<UUID, Long> countMap = new HashMap<>();
+        for (Object[] row : rows) {
+            countMap.put((UUID) row[0], (Long) row[1]);
+        }
+        return countMap;
     }
 }

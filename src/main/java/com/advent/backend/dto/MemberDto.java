@@ -77,4 +77,14 @@ public class MemberDto {
         @Schema(description = "새 닉네임", example = "고명_97")
         private String nickname;
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "닉네임 중복 검사 응답")
+    public static class NicknameDuplicateCheckResponse {
+        @Schema(description = "닉네임 중복 여부")
+        private boolean duplicated;
+    }
 }

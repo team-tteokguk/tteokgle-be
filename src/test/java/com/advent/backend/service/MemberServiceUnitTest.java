@@ -67,4 +67,14 @@ public class MemberServiceUnitTest {
                         })
                 .isInstanceOf(BusinessException.class);
     }
+
+    @Test
+    @DisplayName("닉네임 중복 검사 API용 서비스 메서드는 중복 여부를 boolean으로 반환한다.")
+    public void should_ReturnDuplicateStatus_when_CheckNicknameDuplicate() {
+        given(memberRepository.existsByNickname("이미사용중")).willReturn(true);
+        given(memberRepository.existsByNickname("사용가능")).willReturn(false);
+
+        Assertions.assertTrue(memberService.isNicknameDuplicated("이미사용중"));
+        Assertions.assertFalse(memberService.isNicknameDuplicated("사용가능"));
+    }
 }

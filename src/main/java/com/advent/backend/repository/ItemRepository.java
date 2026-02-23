@@ -31,6 +31,13 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
 
     long countByStoreIdAndIsAvailableTrue(UUID storeId);
 
+    @Query(
+            "select i.store.id, count(i) "
+                    + "from Item i "
+                    + "where i.store.id in :storeIds and i.isAvailable = true "
+                    + "group by i.store.id")
+    List<Object[]> countAvailableItemTypesByStoreIds(@Param("storeIds") List<UUID> storeIds);
+
     // 고객용
     List<Item> findAllByStoreIdAndIsAvailableTrue(UUID storeId);
 }
