@@ -444,6 +444,7 @@ public class StoreServiceTest {
 
         boolean exists = itemList.stream().anyMatch(item -> item.getId().equals(response.getId()));
         assertThat(exists).isTrue();
+        assertThat(response.getCost()).isIn(50, 100, 150, 200);
     }
 
     @Test

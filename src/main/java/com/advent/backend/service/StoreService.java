@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class StoreService {
+    private static final int[] ITEM_COST_OPTIONS = {50, 100, 150, 200};
+
     private final StoreRepository storeRepository;
     private final ItemRepository itemRepository;
     private final MyTteokRepository myTteokRepository;
@@ -220,7 +223,7 @@ public class StoreService {
                                 .content(request.getContent())
                                 .quantity(sellCounts)
                                 .isAvailable(sellCounts > 0)
-                                .cost(100) // TODO: 가격 정책
+                                .cost(pickRandomItemCost())
                                 .build());
 
         return ItemDto.StoreItemResponse.from(savedItem);
@@ -341,5 +344,10 @@ public class StoreService {
             countMap.put((UUID) row[0], (Long) row[1]);
         }
         return countMap;
+    }
+
+    private int pickRandomItemCost() {
+        int index = ThreadLocalRandom.current().nextInt(ITEM_COST_OPTIONS.length);
+        return ITEM_COST_OPTIONS[index];
     }
 }

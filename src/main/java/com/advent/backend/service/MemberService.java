@@ -17,9 +17,14 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class MemberService {
+    private static final int SIGNUP_BONUS_POINTS = 500;
+    private static final String SIGNUP_BONUS_MESSAGE = "회원가입을 환영합니다! 가입 축하금 500엽전을 지급해드렸어요.";
+    private static final String SIGNUP_BONUS_LINK = "/my";
+
     private final MemberRepository memberRepository;
     private final MyTteokRepository myTteokRepository;
     private final StoreRepository storeRepository;
+    private final NotificationService notificationService;
 
     private static final String DEFAULT_STORE_TITLE = "나의 상점";
 
@@ -95,16 +100,20 @@ public class MemberService {
      */
     @Transactional
     public Member registerIFNew(String socialId, Member.SocialType socialType) {
-        Member member =
-                memberRepository
-                        .findBySocialId(socialId)
-                        .orElseGet(
-                                () ->
-                                        memberRepository.save(
-                                                Member.builder()
-                                                        .socialId(socialId)
-                                                        .socialType(socialType)
-                                                        .build()));
+        Member member = memberRepository.findBySocialId(socialId).orElse(null);
+        boolean isNewMember = member == null;
+
+        if (isNewMember) {
+            member =
+                    memberRepository.save(
+                            Member.builder()
+                                    .socialId(socialId)
+                                    .socialType(socialType)
+                                    .point(SIGNUP_BONUS_POINTS)
+                                    .build());
+            notificationService.sendSystemNotification(
+                    member, SIGNUP_BONUS_MESSAGE, SIGNUP_BONUS_LINK);
+        }
 
         createDefaultAssetsIfAbsent(member);
         return member;

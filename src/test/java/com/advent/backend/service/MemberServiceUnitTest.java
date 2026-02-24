@@ -3,9 +3,11 @@ package com.advent.backend.service;
 import static org.mockito.BDDMockito.given;
 
 import com.advent.backend.common.error.exception.BusinessException;
+import com.advent.backend.entity.Member;
 import com.advent.backend.repository.MemberRepository;
 import com.advent.backend.repository.MyTteokRepository;
 import com.advent.backend.repository.StoreRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,7 @@ public class MemberServiceUnitTest {
     @Mock MemberRepository memberRepository;
     @Mock MyTteokRepository myTteokRepository;
     @Mock StoreRepository storeRepository;
+    @Mock NotificationService notificationService;
 
     @Test
     @DisplayName("닉네임 유효성 검사를 통과합니다.")
@@ -76,5 +79,28 @@ public class MemberServiceUnitTest {
 
         Assertions.assertTrue(memberService.isNicknameDuplicated("이미사용중"));
         Assertions.assertFalse(memberService.isNicknameDuplicated("사용가능"));
+    }
+
+    @Test
+    @DisplayName("신규 가입 회원에게는 500 포인트가 지급된다.")
+    public void should_Grant500BonusPoints_when_RegisterNewMember() {
+        String socialId = "new-social-id";
+        Member newMember =
+                Member.builder()
+                        .id(java.util.UUID.randomUUID())
+                        .socialId(socialId)
+                        .socialType(Member.SocialType.KAKAO)
+                        .point(500)
+                        .build();
+
+        given(memberRepository.findBySocialId(socialId)).willReturn(Optional.empty());
+        given(memberRepository.save(org.mockito.ArgumentMatchers.any(Member.class)))
+                .willReturn(newMember);
+        given(myTteokRepository.existsByMemberId(newMember.getId())).willReturn(true);
+        given(storeRepository.existsByMemberId(newMember.getId())).willReturn(true);
+
+        Member result = memberService.registerIFNew(socialId, Member.SocialType.KAKAO);
+
+        Assertions.assertEquals(500, result.getPoint());
     }
 }
