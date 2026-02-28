@@ -1,7 +1,6 @@
 package com.advent.backend.controller;
 
 import com.advent.backend.dto.ItemDto;
-import com.advent.backend.entity.Member;
 import com.advent.backend.security.CustomUserDetails;
 import com.advent.backend.service.MyTteokService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,25 +42,28 @@ public class MyTteokController {
     @Operation(summary = "고명 배치 및 수납 (좌표/상태 수정)")
     @PatchMapping("/{itemId}")
     public ResponseEntity<Void> updateItemPlacement(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable UUID itemId,
             @RequestBody ItemDto.ItemPlacementRequest request) {
-        myTteokService.updateItemPlacement(member, itemId, request);
+        myTteokService.updateItemPlacement(customUserDetails.getMember(), itemId, request);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "고명 컨텐츠(편지/사진) 상세 조회")
     @GetMapping("/{itemId}")
     public ResponseEntity<ItemDto.ItemDetailResponse> getItemDetail(
-            @AuthenticationPrincipal Member member, @PathVariable UUID itemId) {
-        return ResponseEntity.ok(myTteokService.getItemDetail(member, itemId));
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable UUID itemId) {
+        return ResponseEntity.ok(
+                myTteokService.getItemDetail(customUserDetails.getMember(), itemId));
     }
 
     @Operation(summary = "읽지 않은 고명 읽음 처리")
     @PatchMapping("/{itemId}/read")
     public ResponseEntity<Void> readItem(
-            @AuthenticationPrincipal Member member, @PathVariable UUID itemId) {
-        myTteokService.readItem(member, itemId);
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable UUID itemId) {
+        myTteokService.readItem(customUserDetails.getMember(), itemId);
         return ResponseEntity.ok().build();
     }
 }

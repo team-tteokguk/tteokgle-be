@@ -183,6 +183,10 @@ public class MyTteokService {
      * @return
      */
     private MyItem getMyItemOrThrow(Member member, UUID myItemId) {
+        if (member == null) {
+            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
+        }
+
         MyItem myItem =
                 myItemRepository
                         .findById(myItemId)
