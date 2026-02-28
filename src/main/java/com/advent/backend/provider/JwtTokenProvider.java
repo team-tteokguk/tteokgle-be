@@ -106,7 +106,20 @@ public class JwtTokenProvider {
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
+
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())
+                        && StringUtils.hasText(cookie.getValue())) {
+                    return cookie.getValue();
+                }
+            }
+        }
         return null;
+    }
+
+    public long getAccessTokenValiditySeconds() {
+        return accessTokenValiditySeconds / 1000;
     }
 
     public String resolveRefreshToken(HttpServletRequest request) {
