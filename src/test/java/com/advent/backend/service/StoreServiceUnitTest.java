@@ -41,6 +41,27 @@ class StoreServiceUnitTest {
     @Mock private ApplicationEventPublisher applicationEventPublisher;
 
     @Test
+    @DisplayName("상점 정보 조회 응답에는 상점 주인 프로필 이미지가 포함된다")
+    void should_IncludeOwnerProfileImage_When_GetStoreInfo() {
+        UUID storeId = UUID.randomUUID();
+        Member owner =
+                Member.builder()
+                        .id(UUID.randomUUID())
+                        .nickname("사장님")
+                        .profileImage("https://cdn.example.com/owner.png")
+                        .build();
+        Store store = Store.builder().id(storeId).title("내상점").member(owner).build();
+
+        given(storeRepository.findById(storeId)).willReturn(java.util.Optional.of(store));
+
+        StoreDto.StoreResponse result = storeService.getStoreInfo(storeId);
+
+        assertThat(result.getId()).isEqualTo(storeId);
+        assertThat(result.getName()).isEqualTo("내상점");
+        assertThat(result.getProfileImage()).isEqualTo("https://cdn.example.com/owner.png");
+    }
+
+    @Test
     @DisplayName("닉네임/상점명 검색 결과에 판매중 종류 수와 즐겨찾기 여부가 반영된다")
     void should_ReturnStoreSummary_When_SearchStores() {
         UUID me = UUID.randomUUID();

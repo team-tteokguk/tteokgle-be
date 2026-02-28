@@ -17,8 +17,15 @@ public class StoreDto {
         @Schema(description = "상점 이름")
         private String name;
 
+        @Schema(description = "상점 주인 프로필 이미지 URL")
+        private String profileImage;
+
         public static StoreResponse from(Store store) {
-            return StoreResponse.builder().id(store.getId()).name(store.getTitle()).build();
+            return StoreResponse.builder()
+                    .id(store.getId())
+                    .name(store.getTitle())
+                    .profileImage(store.getMember().getProfileImage())
+                    .build();
         }
     }
 

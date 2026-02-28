@@ -29,6 +29,8 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
     // 상점 페이지 별로 아이템 확인하기
     Slice<Item> findAllByStoreId(UUID storeId, Pageable pageable);
 
+    void deleteAllByStoreId(UUID storeId);
+
     long countByStoreIdAndIsAvailableTrue(UUID storeId);
 
     @Query(

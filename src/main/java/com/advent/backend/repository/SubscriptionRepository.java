@@ -28,6 +28,10 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
     Optional<Subscription> findByMemberIdAndStoreId(UUID memberId, UUID storeId);
 
+    void deleteAllByStoreId(UUID storeId);
+
+    void deleteAllByMemberId(UUID memberId);
+
     @Query(
             "select s.store.id from Subscription s "
                     + "where s.member.id = :memberId and s.store.id in :storeIds")

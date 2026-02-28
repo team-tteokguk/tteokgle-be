@@ -100,6 +100,15 @@ public class StoreController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "고명 구매하기")
+    @PostMapping("/items/{itemId}/purchase")
+    public ResponseEntity<Void> purchaseItem(
+            @PathVariable UUID itemId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        storeService.purchaseItem(customUserDetails.getMember().getId(), itemId);
+        return ResponseEntity.noContent().build();
+    }
+
     // 방명록 API
     // 1. 방명록 불러오기
     @Operation(summary = "방명록 불러오기", description = "특정 상점의 방명록을 불러옵니다.")

@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class StoreService {
     private static final int[] ITEM_COST_OPTIONS = {50, 100, 150, 200};
+    private static final String DEFAULT_ITEM_NAME = "고명";
 
     private final StoreRepository storeRepository;
     private final ItemRepository itemRepository;
@@ -200,13 +201,19 @@ public class StoreService {
                         .findById(storeId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
-        String imageUrl = request.getImageUrl() == null ? null : request.getImageUrl();
-        String trimmedName = request.getName().trim();
+        String imageUrl = normalizeBlankToNull(request.getImageUrl());
+        String mediaUrl = normalizeBlankToNull(request.getMediaUrl());
+        String content = normalizeBlankToNull(request.getContent());
+        String trimmedName = normalizeBlankToNull(request.getName());
+        if (trimmedName == null) {
+            trimmedName = DEFAULT_ITEM_NAME;
+        }
         int sellCounts = request.getSellCounts() == null ? 1 : request.getSellCounts();
         Item.ContentType contentType =
                 request.getContentType() == null ? Item.ContentType.NONE : request.getContentType();
 
-        Item existingItem = findSameContentItem(storeId, trimmedName, imageUrl, request);
+        Item existingItem =
+                findSameContentItem(storeId, trimmedName, imageUrl, mediaUrl, content, contentType);
         if (existingItem != null) {
             existingItem.addQuantity(sellCounts);
             return ItemDto.StoreItemResponse.from(existingItem);
@@ -219,8 +226,8 @@ public class StoreService {
                                 .name(trimmedName)
                                 .imageUrl(imageUrl)
                                 .contentType(contentType)
-                                .contentData(request.getMediaUrl())
-                                .content(request.getContent())
+                                .contentData(mediaUrl)
+                                .content(content)
                                 .quantity(sellCounts)
                                 .isAvailable(sellCounts > 0)
                                 .cost(pickRandomItemCost())
@@ -230,32 +237,52 @@ public class StoreService {
     }
 
     private void validateItemCreateRequest(ItemDto.ItemCreateRequest request) {
-        if (request == null || request.getName() == null || request.getName().isBlank()) {
+        if (request == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        String trimmedName = request.getName().trim();
-        if (trimmedName.length() > 30) {
+        String trimmedName = normalizeBlankToNull(request.getName());
+        if (trimmedName != null && trimmedName.length() > 30) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
         if (request.getSellCounts() != null && request.getSellCounts() < 0) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
+
+        String imageUrl = normalizeBlankToNull(request.getImageUrl());
+        String mediaUrl = normalizeBlankToNull(request.getMediaUrl());
+        String content = normalizeBlankToNull(request.getContent());
+        if (imageUrl == null && mediaUrl == null && content == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
     }
 
     private Item findSameContentItem(
-            UUID storeId, String itemName, String imageUrl, ItemDto.ItemCreateRequest request) {
+            UUID storeId,
+            String itemName,
+            String imageUrl,
+            String mediaUrl,
+            String content,
+            Item.ContentType contentType) {
         List<Item> existingItems = itemRepository.findAllByStoreId(storeId);
 
         return existingItems.stream()
                 .filter(item -> Objects.equals(item.getName(), itemName))
-                .filter(item -> item.getContentType() == request.getContentType())
+                .filter(item -> item.getContentType() == contentType)
                 .filter(item -> Objects.equals(item.getImageUrl(), imageUrl))
-                .filter(item -> Objects.equals(item.getContentData(), request.getMediaUrl()))
-                .filter(item -> Objects.equals(item.getContent(), request.getContent()))
+                .filter(item -> Objects.equals(item.getContentData(), mediaUrl))
+                .filter(item -> Objects.equals(item.getContent(), content))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private String normalizeBlankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     /** 상점 주인이 판매 중인 물건을 삭제 */

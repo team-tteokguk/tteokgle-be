@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -138,6 +139,18 @@ class StoreControllerTest {
         ArgumentCaptor<String> storeNameCaptor = ArgumentCaptor.forClass(String.class);
         then(storeService).should().updateStoreName(eq(memberId), storeNameCaptor.capture());
         org.assertj.core.api.Assertions.assertThat(storeNameCaptor.getValue()).isEqualTo("새 상점명");
+    }
+
+    @Test
+    @DisplayName("고명 구매 API는 구매 서비스를 호출한다")
+    void should_PurchaseItem_When_PostPurchaseApi() throws Exception {
+        UUID memberId = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+
+        mockMvc.perform(post("/stores/items/{itemId}/purchase", itemId).with(withAuth(memberId)))
+                .andExpect(status().isNoContent());
+
+        then(storeService).should().purchaseItem(eq(memberId), eq(itemId));
     }
 
     private Authentication authOf(UUID memberId) {
