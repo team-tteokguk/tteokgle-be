@@ -20,6 +20,13 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     // 페이지 단위로 알림 조회
     Slice<Notification> findAllByMember(Member member, Pageable pageable);
 
+    Slice<Notification> findAllByMemberIdOrderByCreatedAtDesc(UUID memberId, Pageable pageable);
+
+    @Transactional
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM Notification n WHERE n.member.id = :memberId")
+    void deleteAllByMemberId(@Param("memberId") UUID memberId);
+
     // 한번에 알림 읽음 메소드
     @Transactional
     @Modifying(clearAutomatically = true)
