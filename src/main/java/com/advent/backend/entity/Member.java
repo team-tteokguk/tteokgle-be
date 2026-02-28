@@ -63,6 +63,11 @@ public class Member extends BaseTimeEntity {
         return this; // 메서드 체이닝을 위해 자기 자신 반환
     }
 
+    public Member updateProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+        return this;
+    }
+
     public void addPoint(int amount) {
         if (amount < 0) {
             throw new BusinessException(ErrorCode.INSUFFICIENT_BALANCE);

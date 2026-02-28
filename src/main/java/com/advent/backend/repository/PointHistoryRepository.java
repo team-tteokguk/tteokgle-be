@@ -7,6 +7,9 @@ import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -25,4 +28,8 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, UUID
 
     // 페이징 처리
     Slice<PointHistory> findByReceiverIdOrderByCreatedAtDesc(UUID memberId, Pageable pageable);
+
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM PointHistory p WHERE p.sender.id = :memberId OR p.receiver.id = :memberId")
+    void deleteAllBySenderIdOrReceiverId(@Param("memberId") UUID memberId);
 }

@@ -4,9 +4,17 @@ import static org.mockito.BDDMockito.given;
 
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.entity.Member;
+import com.advent.backend.repository.GuestBookRepository;
+import com.advent.backend.repository.ItemRepository;
 import com.advent.backend.repository.MemberRepository;
+import com.advent.backend.repository.MyItemRepository;
 import com.advent.backend.repository.MyTteokRepository;
+import com.advent.backend.repository.NotificationRepository;
+import com.advent.backend.repository.PointHistoryRepository;
+import com.advent.backend.repository.RefreshTokenRepository;
+import com.advent.backend.repository.ShareLinkRepository;
 import com.advent.backend.repository.StoreRepository;
+import com.advent.backend.repository.SubscriptionRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +31,14 @@ public class MemberServiceUnitTest {
     @Mock MemberRepository memberRepository;
     @Mock MyTteokRepository myTteokRepository;
     @Mock StoreRepository storeRepository;
+    @Mock MyItemRepository myItemRepository;
+    @Mock ItemRepository itemRepository;
+    @Mock SubscriptionRepository subscriptionRepository;
+    @Mock GuestBookRepository guestBookRepository;
+    @Mock NotificationRepository notificationRepository;
+    @Mock PointHistoryRepository pointHistoryRepository;
+    @Mock RefreshTokenRepository refreshTokenRepository;
+    @Mock ShareLinkRepository shareLinkRepository;
     @Mock NotificationService notificationService;
 
     @Test
@@ -102,5 +118,23 @@ public class MemberServiceUnitTest {
         Member result = memberService.registerIFNew(socialId, Member.SocialType.KAKAO);
 
         Assertions.assertEquals(500, result.getPoint());
+    }
+
+    @Test
+    @DisplayName("프로필 이미지 URL을 변경할 수 있다.")
+    public void should_UpdateProfileImage_when_ValidRequest() {
+        Member member =
+                Member.builder()
+                        .id(java.util.UUID.randomUUID())
+                        .socialId("social")
+                        .socialType(Member.SocialType.KAKAO)
+                        .build();
+        String profileUrl = "https://cdn.example.com/p.png";
+
+        given(memberRepository.findById(member.getId())).willReturn(Optional.of(member));
+
+        Assertions.assertDoesNotThrow(
+                () -> memberService.updateProfileImage(member.getId(), profileUrl));
+        Assertions.assertEquals(profileUrl, member.getProfileImage());
     }
 }

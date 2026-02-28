@@ -75,6 +75,23 @@ class MemberControllerTest {
                 .andExpect(jsonPath("$.duplicated").value(true));
     }
 
+    @Test
+    @DisplayName("PATCH /members/me/profile-image 는 프로필 이미지 변경 API이다")
+    void should_UpdateProfileImage_When_PatchMembersMeProfileImage() throws Exception {
+        UUID memberId = UUID.randomUUID();
+        String imageUrl = "https://cdn.example.com/profile.png";
+        String body = objectMapper.writeValueAsString(Map.of("profileImage", imageUrl));
+
+        mockMvc.perform(
+                        patch("/members/me/profile-image")
+                                .with(withAuth(memberId))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andExpect(status().isNoContent());
+
+        then(memberService).should().updateProfileImage(eq(memberId), eq(imageUrl));
+    }
+
     private Authentication authOf(UUID memberId) {
         Member member =
                 Member.builder()

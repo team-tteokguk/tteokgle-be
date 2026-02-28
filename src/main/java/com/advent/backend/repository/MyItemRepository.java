@@ -16,4 +16,10 @@ public interface MyItemRepository extends JpaRepository<MyItem, UUID> {
 
     // 멤버 아이디로 해당 멤버가 가지고 있는 고명 리스트 출력
     List<MyItem> findByMemberId(UUID memberId);
+
+    void deleteAllByMemberId(UUID memberId);
+
+    void deleteAllByTteokId(UUID tteokId);
+
+    void deleteAllByItem_Store_Id(UUID storeId);
 }

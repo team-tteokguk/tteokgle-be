@@ -53,6 +53,16 @@ public class MemberController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "프로필 이미지 변경", description = "로그인한 회원 자신의 프로필 이미지를 변경합니다.")
+    @PatchMapping("/me/profile-image")
+    public ResponseEntity<Void> updateProfileImage(
+            @RequestBody MemberDto.ProfileImageUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        memberService.updateProfileImage(
+                customUserDetails.getMember().getId(), request.getProfileImage());
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "회원 탈퇴", description = "기존 정보를 삭제하고 회원탈퇴를 합니다. 이 자업은 되돌릴 수 없습니다.")
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteMember(
