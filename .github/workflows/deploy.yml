@@ -56,18 +56,12 @@ jobs:
 
             cd /home/ubuntu
 
-            # 이번 배포는 커밋 SHA 태그로 정확히 고정해서 가져옴
             export IMAGE_TAG=${{ github.sha }}
 
-            # 최신 이미지 pull
-            docker-compose pull app
+            docker compose pull app
+            docker compose up -d --force-recreate --no-deps app
 
-            # 컨테이너 강제 재생성 (최신 이미지 반영 보장)
-            docker-compose up -d --force-recreate --no-deps app
-
-            # 구 이미지 정리
             docker image prune -f
 
-            # 어떤 이미지로 떠있는지 출력(디버깅용)
-            docker-compose ps
-            docker inspect -f 'APP image={{.Config.Image}} id={{.Image}}' $(docker-compose ps -q app) || true
+            docker compose ps
+            docker inspect -f 'APP image={{.Config.Image}} id={{.Image}}' $(docker compose ps -q app) || true
