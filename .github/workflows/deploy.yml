@@ -36,8 +36,8 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/tteokgle-server:latest
-            ${{ secrets.DOCKER_USERNAME }}/tteokgle-server:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/tteogeul:latest
+            ${{ secrets.DOCKER_USERNAME }}/tteogeul:${{ github.sha }}
 
   deploy:
     needs: build-and-push
@@ -57,6 +57,8 @@ jobs:
             cd /home/ubuntu
 
             export IMAGE_TAG=${{ github.sha }}
+
+            docker compose down --remove-orphans || true
 
             docker compose pull app
             docker compose up -d --force-recreate --no-deps app
