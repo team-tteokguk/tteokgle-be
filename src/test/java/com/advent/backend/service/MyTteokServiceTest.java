@@ -14,6 +14,7 @@ import com.advent.backend.entity.Item;
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.MyItem;
 import com.advent.backend.entity.MyTteok;
+import com.advent.backend.entity.Store;
 import com.advent.backend.repository.MyItemRepository;
 import com.advent.backend.repository.MyTteokRepository;
 import java.util.List;
@@ -50,6 +51,7 @@ class MyTteokServiceTest {
     private UUID myTteokId;
     private UUID myItemId;
     private Pageable pageable;
+    private Store store;
 
     @BeforeEach
     void setUp() {
@@ -62,9 +64,12 @@ class MyTteokServiceTest {
 
         myTteok = MyTteok.builder().id(myTteokId).member(member).build();
 
+        store = Store.builder().id(UUID.randomUUID()).member(member).title("테스트상점").build();
+
         item =
                 Item.builder()
                         .id(UUID.randomUUID())
+                        .store(store)
                         .name("황금계란")
                         .imageUrl("gold_egg.png")
                         .contentType(Item.ContentType.PHOTO)
@@ -154,7 +159,7 @@ class MyTteokServiceTest {
         @DisplayName("미배치 고명 리스트를 조회한다")
         void getUnplacedItems_Success() {
             given(myTteokRepository.findByMemberId(memberId)).willReturn(Optional.of(myTteok));
-            given(myItemRepository.findAllByTteokIdAndIsUsed(myTteokId, false, pageable))
+            given(myItemRepository.findAllByTteokId(myTteokId, pageable))
                     .willReturn(new SliceImpl<>(List.of(myItem), pageable, false));
 
             ItemDto.UnplacedItemSliceResponse result =
@@ -163,6 +168,7 @@ class MyTteokServiceTest {
             assertThat(result.getItems()).hasSize(1);
             assertThat(result.getItems().get(0).getName()).isEqualTo("황금계란");
             assertThat(result.getItems().get(0).isRead()).isFalse();
+            assertThat(result.getItems().get(0).isUsed()).isFalse();
             assertThat(result.getPage().isHasNext()).isFalse();
         }
     }
@@ -182,8 +188,9 @@ class MyTteokServiceTest {
             myTteokService.updateItemPlacement(member, myItemId, request);
 
             assertThat(myItem.isUsed()).isTrue();
-            assertThat(myItem.getPos_x()).isEqualTo(1.0f);
-            assertThat(myItem.getPos_y()).isEqualTo(2.0f);
+            assertThat(myItem.getPos_x()).isNotNull();
+            assertThat(myItem.getPos_y()).isNotNull();
+            assertThat(myItem.getPos_z()).isNotNull();
 
             then(myItemRepository).should().findById(myItemId);
         }
@@ -218,6 +225,8 @@ class MyTteokServiceTest {
 
             assertThat(response.getId()).isEqualTo(myItemId);
             assertThat(response.getName()).isEqualTo("황금계란");
+            assertThat(response.getCreatorNickname()).isEqualTo("테스트유저");
+            assertThat(response.getItemType()).isEqualTo("황금계란");
             assertThat(response.getContentType()).isEqualTo("PHOTO");
         }
 

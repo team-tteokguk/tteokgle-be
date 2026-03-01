@@ -1,5 +1,6 @@
 package com.advent.backend.dto;
 
+import com.advent.backend.entity.Notification;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -26,5 +27,15 @@ public class NotificationDto {
 
         @Schema(description = "알림 생성 시간")
         private LocalDateTime date;
+
+        public static NotificationResponse from(Notification notification) {
+            return NotificationResponse.builder()
+                    .id(notification.getId() == null ? null : notification.getId().toString())
+                    .content(notification.getMessage())
+                    .url(notification.getLink())
+                    .isRead(notification.isRead())
+                    .date(notification.getCreatedAt())
+                    .build();
+        }
     }
 }

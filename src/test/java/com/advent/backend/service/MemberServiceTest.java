@@ -6,8 +6,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.advent.backend.common.error.ErrorCode;
 import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.entity.Member;
+import com.advent.backend.entity.Notification;
 import com.advent.backend.repository.MemberRepository;
 import com.advent.backend.repository.MyTteokRepository;
+import com.advent.backend.repository.NotificationRepository;
 import com.advent.backend.repository.StoreRepository;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,6 +27,7 @@ public class MemberServiceTest {
     @Autowired MemberRepository memberRepository;
     @Autowired MyTteokRepository myTteokRepository;
     @Autowired StoreRepository storeRepository;
+    @Autowired NotificationRepository notificationRepository;
 
     private Member memberA;
 
@@ -64,11 +67,16 @@ public class MemberServiceTest {
 
         assertThat(member.getId()).isNotNull();
         assertThat(member.getSocialId()).isEqualTo(socialId);
+        assertThat(member.getPoint()).isEqualTo(500);
 
         Member resultMember = memberRepository.findById(member.getId()).orElseThrow();
         assertThat(resultMember.getSocialId()).isEqualTo(socialId);
+        assertThat(resultMember.getPoint()).isEqualTo(500);
         assertThat(myTteokRepository.existsByMemberId(member.getId())).isTrue();
         assertThat(storeRepository.existsByMemberId(member.getId())).isTrue();
+        assertThat(notificationRepository.findAllByMemberOrderByCreatedAtDesc(member))
+                .extracting(Notification::getNotificationType)
+                .contains(Notification.NotificationType.ALARM);
     }
 
     @Test

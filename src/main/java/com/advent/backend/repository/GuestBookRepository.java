@@ -21,4 +21,8 @@ public interface GuestBookRepository extends JpaRepository<GuestBook, UUID> {
     Optional<GuestBook> findByIdWithMember(@Param("guestBookId") UUID guestbookId);
 
     boolean existsByIdAndMemberId(UUID id, UUID memberId);
+
+    void deleteAllByStoreId(UUID storeId);
+
+    void deleteAllByMemberId(UUID memberId);
 }

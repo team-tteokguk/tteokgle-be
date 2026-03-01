@@ -77,4 +77,24 @@ public class MemberDto {
         @Schema(description = "새 닉네임", example = "고명_97")
         private String nickname;
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "닉네임 중복 검사 응답")
+    public static class NicknameDuplicateCheckResponse {
+        @Schema(description = "닉네임 중복 여부")
+        private boolean duplicated;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(description = "프로필 이미지 변경 요청")
+    public static class ProfileImageUpdateRequest {
+        @Schema(description = "프로필 이미지 URL", example = "https://cdn.example.com/profile.png")
+        private String profileImage;
+    }
 }

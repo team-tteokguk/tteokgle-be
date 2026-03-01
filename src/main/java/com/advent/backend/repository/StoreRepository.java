@@ -5,7 +5,10 @@ import com.advent.backend.entity.Store;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -55,4 +58,17 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
     long countByCreatedAtAfter(@Param("date") java.time.LocalDateTime date);
 
     List<Store> findTop10ByOrderByCreatedAtDesc();
+
+    @Query(
+            "select s from Store s "
+                    + "join fetch s.member m "
+                    + "where m.id <> :memberId "
+                    + "and (lower(s.title) like lower(concat('%', :keyword, '%')) "
+                    + "or lower(m.nickname) like lower(concat('%', :keyword, '%')))")
+    Slice<Store> searchByKeywordExcludingMemberId(
+            @Param("memberId") UUID memberId, @Param("keyword") String keyword, Pageable pageable);
+
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM Store s WHERE s.member.id = :memberId")
+    void deleteAllByMemberId(@Param("memberId") UUID memberId);
 }

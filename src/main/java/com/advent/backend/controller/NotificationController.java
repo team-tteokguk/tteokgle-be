@@ -9,9 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Tag(name = "알림창 관리", description = "알림 목록 조회 및 읽음 처리")
 @RestController
@@ -26,8 +28,16 @@ public class NotificationController {
     public ResponseEntity<Slice<NotificationDto.NotificationResponse>> getAllNotifications(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PageableDefault(size = 10) Pageable pageable) {
-        // Service에서 Slice로 받음
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(
+                notificationService.getNotifications(
+                        customUserDetails.getMember().getId(), pageable));
+    }
+
+    @Operation(summary = "알림 SSE 구독")
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribeNotification(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return notificationService.subscribe(customUserDetails.getMember().getId());
     }
 
     // 2. 알림 전체 읽음 처리

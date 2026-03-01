@@ -50,6 +50,7 @@ public enum ErrorCode {
     // 4.1. 아이템
     ITEM_NOT_FOUND(409, "I001", "존재하지 않는 아이템입니다."),
     ITEM_ACCESS_DENIED(403, "I002", "해당 아이템에 대한 권한이 없습니다."),
+    ITEM_ALREADY_OWNED(409, "I003", "이미 보유한 고명입니다."),
 
     // 4.2. 떡국
     TTEOKGUK_NOT_FOUND(404, "TK001", "나의 떡국이 존재하지 않습니다."),

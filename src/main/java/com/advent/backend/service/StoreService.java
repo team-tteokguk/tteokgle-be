@@ -7,14 +7,23 @@ import com.advent.backend.dto.StoreDto;
 import com.advent.backend.entity.*;
 import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.repository.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +31,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class StoreService {
+    private static final int[] ITEM_COST_OPTIONS = {50, 100, 150, 200};
+    private static final String DEFAULT_ITEM_NAME = "고명";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private final StoreRepository storeRepository;
     private final ItemRepository itemRepository;
     private final MyTteokRepository myTteokRepository;
@@ -73,6 +86,9 @@ public class StoreService {
                         .findByMemberId(buyerId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.TTEOKGUK_NOT_FOUND));
 
+        // 5. 구매자가 동일 컨텐츠의 고명을 이미 보유 중이면 구매 불가
+        validateDuplicateOwnedItem(buyerId, item);
+
         // 5. 돈 송금하기
         pointService.transfer(buyer, seller, item.getId(), item.getCost(), item.getName());
 
@@ -87,6 +103,23 @@ public class StoreService {
         String txId = UUID.randomUUID().toString();
 
         log.info("[TX_SUCCESS] ID: {}, buyer: {}, seller: {}", txId, buyer.getId(), seller.getId());
+    }
+
+    private void validateDuplicateOwnedItem(UUID buyerId, Item targetItem) {
+        boolean alreadyOwned =
+                myItemRepository.findByMemberId(buyerId).stream()
+                        .map(MyItem::getItem)
+                        .anyMatch(ownedItem -> hasSameContent(ownedItem, targetItem));
+
+        if (alreadyOwned) {
+            throw new BusinessException(ErrorCode.ITEM_ALREADY_OWNED);
+        }
+    }
+
+    private boolean hasSameContent(Item left, Item right) {
+        return left.getContentType() == right.getContentType()
+                && Objects.equals(left.getContentData(), right.getContentData())
+                && Objects.equals(left.getContent(), right.getContent());
     }
 
     private void saveMyItem(Member buyer, Item item, MyTteok myTteok) {
@@ -113,6 +146,37 @@ public class StoreService {
                         .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         return StoreDto.StoreResponse.from(store);
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<StoreDto.StoreSummaryResponse> searchStores(
+            UUID memberId, String keyword, Pageable pageable) {
+        String trimmedKeyword = keyword == null ? "" : keyword.trim();
+        if (trimmedKeyword.isEmpty()) {
+            return new SliceImpl<>(Collections.emptyList(), pageable, false);
+        }
+
+        Slice<Store> stores =
+                storeRepository.searchByKeywordExcludingMemberId(
+                        memberId, trimmedKeyword, pageable);
+        return toStoreSummarySlice(memberId, stores);
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<StoreDto.StoreSummaryResponse> getMyFavoriteStores(
+            UUID memberId, Pageable pageable) {
+        Slice<Subscription> subscriptions =
+                subscriptionRepository.findAllByMemberId(memberId, pageable);
+        List<Store> stores =
+                subscriptions.getContent().stream().map(Subscription::getStore).toList();
+
+        if (stores.isEmpty()) {
+            return new SliceImpl<>(Collections.emptyList(), pageable, subscriptions.hasNext());
+        }
+
+        List<StoreDto.StoreSummaryResponse> content =
+                buildStoreSummaryResponses(stores, new HashSet<>(extractStoreIds(stores)));
+        return new SliceImpl<>(content, pageable, subscriptions.hasNext());
     }
 
     /**
@@ -160,13 +224,26 @@ public class StoreService {
                         .findById(storeId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
-        String imageUrl = request.getImageUrl() == null ? null : request.getImageUrl();
-        String trimmedName = request.getName().trim();
+        String imageUrl = normalizeBlankToNull(request.getImageUrl());
+        String mediaUrl = normalizeBlankToNull(request.getMediaUrl());
+        String normalizedContentData = normalizeContentData(mediaUrl);
+        String content = normalizeBlankToNull(request.getContent());
+        String trimmedName = normalizeBlankToNull(request.getName());
+        if (trimmedName == null) {
+            trimmedName = DEFAULT_ITEM_NAME;
+        }
         int sellCounts = request.getSellCounts() == null ? 1 : request.getSellCounts();
         Item.ContentType contentType =
                 request.getContentType() == null ? Item.ContentType.NONE : request.getContentType();
 
-        Item existingItem = findSameContentItem(storeId, trimmedName, imageUrl, request);
+        Item existingItem =
+                findSameContentItem(
+                        storeId,
+                        trimmedName,
+                        imageUrl,
+                        normalizedContentData,
+                        content,
+                        contentType);
         if (existingItem != null) {
             existingItem.addQuantity(sellCounts);
             return ItemDto.StoreItemResponse.from(existingItem);
@@ -179,43 +256,80 @@ public class StoreService {
                                 .name(trimmedName)
                                 .imageUrl(imageUrl)
                                 .contentType(contentType)
-                                .contentData(request.getMediaUrl())
-                                .content(request.getContent())
+                                .contentData(normalizedContentData)
+                                .content(content)
                                 .quantity(sellCounts)
                                 .isAvailable(sellCounts > 0)
-                                .cost(100) // TODO: 가격 정책
+                                .cost(pickRandomItemCost())
                                 .build());
 
         return ItemDto.StoreItemResponse.from(savedItem);
     }
 
     private void validateItemCreateRequest(ItemDto.ItemCreateRequest request) {
-        if (request == null || request.getName() == null || request.getName().isBlank()) {
+        if (request == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        String trimmedName = request.getName().trim();
-        if (trimmedName.length() > 30) {
+        String trimmedName = normalizeBlankToNull(request.getName());
+        if (trimmedName != null && trimmedName.length() > 30) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
         if (request.getSellCounts() != null && request.getSellCounts() < 0) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
+
+        String imageUrl = normalizeBlankToNull(request.getImageUrl());
+        String mediaUrl = normalizeBlankToNull(request.getMediaUrl());
+        String content = normalizeBlankToNull(request.getContent());
+        if (imageUrl == null && mediaUrl == null && content == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
     }
 
     private Item findSameContentItem(
-            UUID storeId, String itemName, String imageUrl, ItemDto.ItemCreateRequest request) {
+            UUID storeId,
+            String itemName,
+            String imageUrl,
+            String mediaUrl,
+            String content,
+            Item.ContentType contentType) {
         List<Item> existingItems = itemRepository.findAllByStoreId(storeId);
 
         return existingItems.stream()
                 .filter(item -> Objects.equals(item.getName(), itemName))
-                .filter(item -> item.getContentType() == request.getContentType())
+                .filter(item -> item.getContentType() == contentType)
                 .filter(item -> Objects.equals(item.getImageUrl(), imageUrl))
-                .filter(item -> Objects.equals(item.getContentData(), request.getMediaUrl()))
-                .filter(item -> Objects.equals(item.getContent(), request.getContent()))
+                .filter(item -> Objects.equals(item.getContentData(), mediaUrl))
+                .filter(item -> Objects.equals(item.getContent(), content))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private String normalizeBlankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String normalizeContentData(String contentData) {
+        if (contentData == null) {
+            return null;
+        }
+
+        try {
+            OBJECT_MAPPER.readTree(contentData);
+            return contentData;
+        } catch (JsonProcessingException ignored) {
+            try {
+                return OBJECT_MAPPER.writeValueAsString(contentData);
+            } catch (JsonProcessingException e) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+            }
+        }
     }
 
     /** 상점 주인이 판매 중인 물건을 삭제 */
@@ -250,5 +364,64 @@ public class StoreService {
         if (trimmed.length() < 2 || trimmed.length() > 20) {
             throw new BusinessException(ErrorCode.INVALID_STORE_NAME);
         }
+    }
+
+    private Slice<StoreDto.StoreSummaryResponse> toStoreSummarySlice(
+            UUID memberId, Slice<Store> stores) {
+        List<Store> content = stores.getContent();
+        if (content.isEmpty()) {
+            return new SliceImpl<>(Collections.emptyList(), stores.getPageable(), stores.hasNext());
+        }
+
+        List<UUID> storeIds = extractStoreIds(content);
+        Set<UUID> subscribedStoreIds =
+                new HashSet<>(subscriptionRepository.findSubscribedStoreIds(memberId, storeIds));
+        List<StoreDto.StoreSummaryResponse> responses =
+                buildStoreSummaryResponses(content, subscribedStoreIds);
+
+        return new SliceImpl<>(responses, stores.getPageable(), stores.hasNext());
+    }
+
+    private List<StoreDto.StoreSummaryResponse> buildStoreSummaryResponses(
+            List<Store> stores, Set<UUID> subscribedStoreIds) {
+        List<UUID> storeIds = extractStoreIds(stores);
+        Map<UUID, Long> sellingItemTypeCounts = countSellingItemTypes(storeIds);
+
+        return stores.stream()
+                .map(
+                        store ->
+                                StoreDto.StoreSummaryResponse.builder()
+                                        .storeId(store.getId())
+                                        .nickname(store.getMember().getNickname())
+                                        .storeName(store.getTitle())
+                                        .profileImage(store.getMember().getProfileImage())
+                                        .sellingItemTypeCount(
+                                                sellingItemTypeCounts.getOrDefault(
+                                                        store.getId(), 0L))
+                                        .favorite(subscribedStoreIds.contains(store.getId()))
+                                        .build())
+                .toList();
+    }
+
+    private List<UUID> extractStoreIds(List<Store> stores) {
+        return stores.stream().map(Store::getId).toList();
+    }
+
+    private Map<UUID, Long> countSellingItemTypes(List<UUID> storeIds) {
+        if (storeIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Object[]> rows = itemRepository.countAvailableItemTypesByStoreIds(storeIds);
+        Map<UUID, Long> countMap = new HashMap<>();
+        for (Object[] row : rows) {
+            countMap.put((UUID) row[0], (Long) row[1]);
+        }
+        return countMap;
+    }
+
+    private int pickRandomItemCost() {
+        int index = ThreadLocalRandom.current().nextInt(ITEM_COST_OPTIONS.length);
+        return ITEM_COST_OPTIONS[index];
     }
 }

@@ -50,7 +50,7 @@ public class AuthController {
 
         refreshTokenService.saveRefreshToken(member.getId().toString(), refreshToken);
 
-        ResponseCookie cookie =
+        ResponseCookie refreshTokenCookie =
                 ResponseCookie.from("refreshToken", refreshToken)
                         .httpOnly(true)
                         .secure(false) // 프로덕션에서 수정하기
@@ -58,8 +58,17 @@ public class AuthController {
                         .maxAge(7 * 24 * 60 * 60)
                         .sameSite("Lax")
                         .build();
+        ResponseCookie accessTokenCookie =
+                ResponseCookie.from("accessToken", accessToken)
+                        .httpOnly(true)
+                        .secure(false) // 프로덕션에서 수정하기
+                        .path("/")
+                        .maxAge(jwtTokenProvider.getAccessTokenValiditySeconds())
+                        .sameSite("Lax")
+                        .build();
 
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 
         boolean isNewMember = member.getCreatedAt().equals(member.getModifiedAt());
 
@@ -82,7 +91,7 @@ public class AuthController {
 
         // ⭐ 새로운 리프레시 토큰도 발급하는 경우 쿠키 갱신
         if (newToken.getRefreshToken() != null) {
-            ResponseCookie cookie =
+            ResponseCookie refreshTokenCookie =
                     ResponseCookie.from("refreshToken", newToken.getRefreshToken())
                             .httpOnly(true)
                             .secure(false)
@@ -90,8 +99,17 @@ public class AuthController {
                             .maxAge(7 * 24 * 60 * 60)
                             .sameSite("Lax")
                             .build();
+            ResponseCookie accessTokenCookie =
+                    ResponseCookie.from("accessToken", newToken.getAccessToken())
+                            .httpOnly(true)
+                            .secure(false)
+                            .path("/")
+                            .maxAge(jwtTokenProvider.getAccessTokenValiditySeconds())
+                            .sameSite("Lax")
+                            .build();
 
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 
             // body에서는 제거
             // newToken.setRefreshToken(null); // 또는 DTO 수정

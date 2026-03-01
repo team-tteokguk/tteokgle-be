@@ -26,6 +26,15 @@ public class MemberController {
         return ResponseEntity.ok(true);
     }
 
+    @Operation(summary = "닉네임 중복 검사", description = "닉네임 중복 여부를 확인합니다.")
+    @GetMapping("/nickname/duplicate")
+    public ResponseEntity<MemberDto.NicknameDuplicateCheckResponse> checkNicknameDuplicate(
+            @RequestParam("nickname") String nickname) {
+        boolean duplicated = memberService.isNicknameDuplicated(nickname);
+        return ResponseEntity.ok(
+                MemberDto.NicknameDuplicateCheckResponse.builder().duplicated(duplicated).build());
+    }
+
     @Operation(summary = "내 정보 조회", description = "로그인한 회원의 정보를 조회합니다.")
     @GetMapping("/me")
     public ResponseEntity<MemberDto.MemberResponse> getMyInfo(
@@ -37,13 +46,20 @@ public class MemberController {
     @Operation(summary = "닉네임 변경", description = "로그인한 회원 자신의 닉네임을 변경합니다.")
     @PatchMapping("/me")
     public ResponseEntity<Void> updateNickname(
-            @RequestBody MemberDto.NicknameUpdateRequest request, // 1. 변수명을 request로 바꾸면 덜 헷갈려요!
+            @RequestBody MemberDto.NicknameUpdateRequest request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-
-        // 2. 서비스에는 '객체'가 아니라 '글자(String)'를 꺼내서 전달해야 합니다.
-        // DTO가 record라면 request.nickname(), 일반 class라면 request.getNickname()을 사용하세요.
         memberService.updateNickName(customUserDetails.getMember().getId(), request.getNickname());
 
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "프로필 이미지 변경", description = "로그인한 회원 자신의 프로필 이미지를 변경합니다.")
+    @PatchMapping("/me/profile-image")
+    public ResponseEntity<Void> updateProfileImage(
+            @RequestBody MemberDto.ProfileImageUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        memberService.updateProfileImage(
+                customUserDetails.getMember().getId(), request.getProfileImage());
         return ResponseEntity.noContent().build();
     }
 

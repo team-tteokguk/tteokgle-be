@@ -444,6 +444,62 @@ public class StoreServiceTest {
 
         boolean exists = itemList.stream().anyMatch(item -> item.getId().equals(response.getId()));
         assertThat(exists).isTrue();
+        assertThat(response.getCost()).isIn(50, 100, 150, 200);
+    }
+
+    @Test
+    @DisplayName("상품 진열: 텍스트만 있어도 등록된다")
+    void should_PublishItem_When_OnlyTextProvided() {
+        ItemDto.ItemCreateRequest request =
+                ItemDto.ItemCreateRequest.builder().name("텍스트고명").content("메시지").build();
+
+        ItemDto.StoreItemResponse response = storeService.publishItem(storeA.getId(), request);
+
+        assertThat(response).isNotNull();
+    }
+
+    @Test
+    @DisplayName("상품 진열: 이미지만 있어도 등록된다")
+    void should_PublishItem_When_OnlyImageProvided() {
+        ItemDto.ItemCreateRequest request =
+                ItemDto.ItemCreateRequest.builder()
+                        .name("이미지고명")
+                        .imageUrl("https://cdn.example.com/item.png")
+                        .build();
+
+        ItemDto.StoreItemResponse response = storeService.publishItem(storeA.getId(), request);
+
+        assertThat(response).isNotNull();
+    }
+
+    @Test
+    @DisplayName("상품 진열: 유튜브 URL만 있어도 등록된다")
+    void should_PublishItem_When_OnlyMediaUrlProvided() {
+        ItemDto.ItemCreateRequest request =
+                ItemDto.ItemCreateRequest.builder()
+                        .name("영상고명")
+                        .contentType(Item.ContentType.VIDEO)
+                        .mediaUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+                        .build();
+
+        ItemDto.StoreItemResponse response = storeService.publishItem(storeA.getId(), request);
+
+        assertThat(response).isNotNull();
+    }
+
+    @Test
+    @DisplayName("상품 진열: 텍스트/이미지/유튜브 URL 모두 없으면 실패한다")
+    void should_FailPublishItem_When_AllContentsAreEmpty() {
+        ItemDto.ItemCreateRequest request =
+                ItemDto.ItemCreateRequest.builder()
+                        .name("빈고명")
+                        .content("   ")
+                        .imageUrl("   ")
+                        .mediaUrl("   ")
+                        .build();
+
+        assertThatThrownBy(() -> storeService.publishItem(storeA.getId(), request))
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test

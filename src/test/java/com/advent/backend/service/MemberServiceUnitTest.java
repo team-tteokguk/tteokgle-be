@@ -3,9 +3,19 @@ package com.advent.backend.service;
 import static org.mockito.BDDMockito.given;
 
 import com.advent.backend.common.error.exception.BusinessException;
+import com.advent.backend.entity.Member;
+import com.advent.backend.repository.GuestBookRepository;
+import com.advent.backend.repository.ItemRepository;
 import com.advent.backend.repository.MemberRepository;
+import com.advent.backend.repository.MyItemRepository;
 import com.advent.backend.repository.MyTteokRepository;
+import com.advent.backend.repository.NotificationRepository;
+import com.advent.backend.repository.PointHistoryRepository;
+import com.advent.backend.repository.RefreshTokenRepository;
+import com.advent.backend.repository.ShareLinkRepository;
 import com.advent.backend.repository.StoreRepository;
+import com.advent.backend.repository.SubscriptionRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +31,15 @@ public class MemberServiceUnitTest {
     @Mock MemberRepository memberRepository;
     @Mock MyTteokRepository myTteokRepository;
     @Mock StoreRepository storeRepository;
+    @Mock MyItemRepository myItemRepository;
+    @Mock ItemRepository itemRepository;
+    @Mock SubscriptionRepository subscriptionRepository;
+    @Mock GuestBookRepository guestBookRepository;
+    @Mock NotificationRepository notificationRepository;
+    @Mock PointHistoryRepository pointHistoryRepository;
+    @Mock RefreshTokenRepository refreshTokenRepository;
+    @Mock ShareLinkRepository shareLinkRepository;
+    @Mock NotificationService notificationService;
 
     @Test
     @DisplayName("닉네임 유효성 검사를 통과합니다.")
@@ -66,5 +85,56 @@ public class MemberServiceUnitTest {
                             memberService.validateNickname(duplicateName);
                         })
                 .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("닉네임 중복 검사 API용 서비스 메서드는 중복 여부를 boolean으로 반환한다.")
+    public void should_ReturnDuplicateStatus_when_CheckNicknameDuplicate() {
+        given(memberRepository.existsByNickname("이미사용중")).willReturn(true);
+        given(memberRepository.existsByNickname("사용가능")).willReturn(false);
+
+        Assertions.assertTrue(memberService.isNicknameDuplicated("이미사용중"));
+        Assertions.assertFalse(memberService.isNicknameDuplicated("사용가능"));
+    }
+
+    @Test
+    @DisplayName("신규 가입 회원에게는 500 포인트가 지급된다.")
+    public void should_Grant500BonusPoints_when_RegisterNewMember() {
+        String socialId = "new-social-id";
+        Member newMember =
+                Member.builder()
+                        .id(java.util.UUID.randomUUID())
+                        .socialId(socialId)
+                        .socialType(Member.SocialType.KAKAO)
+                        .point(500)
+                        .build();
+
+        given(memberRepository.findBySocialId(socialId)).willReturn(Optional.empty());
+        given(memberRepository.save(org.mockito.ArgumentMatchers.any(Member.class)))
+                .willReturn(newMember);
+        given(myTteokRepository.existsByMemberId(newMember.getId())).willReturn(true);
+        given(storeRepository.existsByMemberId(newMember.getId())).willReturn(true);
+
+        Member result = memberService.registerIFNew(socialId, Member.SocialType.KAKAO);
+
+        Assertions.assertEquals(500, result.getPoint());
+    }
+
+    @Test
+    @DisplayName("프로필 이미지 URL을 변경할 수 있다.")
+    public void should_UpdateProfileImage_when_ValidRequest() {
+        Member member =
+                Member.builder()
+                        .id(java.util.UUID.randomUUID())
+                        .socialId("social")
+                        .socialType(Member.SocialType.KAKAO)
+                        .build();
+        String profileUrl = "https://cdn.example.com/p.png";
+
+        given(memberRepository.findById(member.getId())).willReturn(Optional.of(member));
+
+        Assertions.assertDoesNotThrow(
+                () -> memberService.updateProfileImage(member.getId(), profileUrl));
+        Assertions.assertEquals(profileUrl, member.getProfileImage());
     }
 }
