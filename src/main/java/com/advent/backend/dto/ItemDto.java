@@ -130,6 +130,9 @@ public class ItemDto {
 
         @Schema(description = "사용 여부")
         private boolean isUsed;
+
+        @Schema(description = "읽음 여부")
+        private boolean isRead;
     }
 
     // 3. [응답] 나의 떡국용 미배치된 고명 정보 조회
@@ -140,6 +143,9 @@ public class ItemDto {
     public static class UnplacedItemResponse extends ItemBase {
         @Schema(description = "컨텐츠 확인 여부")
         private boolean isRead;
+
+        @Schema(description = "배치 여부")
+        private boolean isUsed;
     }
 
     @Getter
@@ -186,6 +192,12 @@ public class ItemDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ItemDetailResponse extends ItemBase {
+        @Schema(description = "고명을 만든 사람 닉네임")
+        private String creatorNickname;
+
+        @Schema(description = "고명 종류", example = "scallion")
+        private String itemType;
+
         @Schema(description = "컨텐츠 타입")
         private String contentType;
 
@@ -228,21 +240,27 @@ public class ItemDto {
     }
 
     @Getter
+    @lombok.Setter
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     @Schema(description = "고명 배치 상태 수정 요청")
     public static class ItemPlacementRequest {
         @Schema(description = "배치 여부")
-        private boolean isUsed;
+        @JsonProperty("isUsed")
+        @JsonAlias({"used", "is_used"})
+        private Boolean isUsed;
 
         @Schema(description = "좌표 X")
+        @JsonAlias({"pos_x", "x"})
         private Float posX;
 
         @Schema(description = "좌표 Y")
+        @JsonAlias({"pos_y", "y"})
         private Float posY;
 
         @Schema(description = "좌표 Z")
+        @JsonAlias({"pos_z", "z"})
         private Float posZ;
     }
 }

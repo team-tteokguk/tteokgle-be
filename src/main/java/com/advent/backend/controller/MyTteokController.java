@@ -44,7 +44,7 @@ public class MyTteokController {
     public ResponseEntity<Void> updateItemPlacement(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable UUID itemId,
-            @RequestBody ItemDto.ItemPlacementRequest request) {
+            @RequestBody(required = false) ItemDto.ItemPlacementRequest request) {
         myTteokService.updateItemPlacement(customUserDetails.getMember(), itemId, request);
         return ResponseEntity.ok().build();
     }

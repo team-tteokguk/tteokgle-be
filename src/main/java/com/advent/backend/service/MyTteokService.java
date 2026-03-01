@@ -9,7 +9,13 @@ import com.advent.backend.entity.MyItem;
 import com.advent.backend.entity.MyTteok;
 import com.advent.backend.repository.MyItemRepository;
 import com.advent.backend.repository.MyTteokRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -20,6 +26,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional
 public class MyTteokService {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final float MIN_DISTANCE = 36f;
+    private static final float MIN_X = 40f;
+    private static final float MAX_X = 320f;
+    private static final float MIN_Y = 80f;
+    private static final float MAX_Y = 360f;
+    private static final float DEFAULT_Z = 1f;
+    private static final float GRID_STEP = 28f;
 
     private final MyTteokRepository myTteokRepository;
     private final MyItemRepository myItemRepository;
@@ -54,7 +68,7 @@ public class MyTteokService {
 
         Slice<ItemDto.UnplacedItemResponse> itemSlice =
                 myItemRepository
-                        .findAllByTteokIdAndIsUsed(myTteok.getId(), false, pageable)
+                        .findAllByTteokId(myTteok.getId(), pageable)
                         .map(this::toUnplacedDto);
 
         return ItemDto.UnplacedItemSliceResponse.from(itemSlice);
@@ -70,9 +84,17 @@ public class MyTteokService {
     public void updateItemPlacement(
             Member member, UUID myItemId, ItemDto.ItemPlacementRequest request) {
         MyItem myItem = getMyItemOrThrow(member, myItemId);
+        ItemDto.ItemPlacementRequest normalizedRequest =
+                request == null ? ItemDto.ItemPlacementRequest.builder().build() : request;
 
-        myItem.updatePlacement(
-                request.isUsed(), request.getPosX(), request.getPosY(), request.getPosZ());
+        boolean shouldUse = resolveIsUsed(normalizedRequest, myItem);
+        if (!shouldUse) {
+            myItem.updatePlacement(false, null, null, null);
+            return;
+        }
+
+        Position position = pickNonOverlappingPosition(myItem);
+        myItem.updatePlacement(true, position.x(), position.y(), position.z());
     }
 
     /**
@@ -91,8 +113,10 @@ public class MyTteokService {
                 .id(myItem.getId())
                 .name(originalItem.getName())
                 .imageUrl(originalItem.getImageUrl())
+                .creatorNickname(extractCreatorNickname(originalItem))
+                .itemType(originalItem.getName())
                 .contentType(originalItem.getContentType().name())
-                .mediaUrl(originalItem.getContentData())
+                .mediaUrl(denormalizeContentData(originalItem.getContentData()))
                 .content(originalItem.getContent())
                 .isRead(myItem.isRead())
                 .build();
@@ -122,7 +146,9 @@ public class MyTteokService {
                 .imageUrl(myItem.getItem().getImageUrl())
                 .posX(myItem.getPos_x())
                 .posY(myItem.getPos_y())
+                .posZ(myItem.getPos_z())
                 .isUsed(true)
+                .isRead(myItem.isRead())
                 .build();
     }
 
@@ -138,6 +164,7 @@ public class MyTteokService {
                 .name(myItem.getItem().getName())
                 .imageUrl(myItem.getItem().getImageUrl())
                 .isRead(myItem.isRead())
+                .isUsed(myItem.isUsed())
                 .build();
     }
 
@@ -197,4 +224,108 @@ public class MyTteokService {
         }
         return myItem;
     }
+
+    private String denormalizeContentData(String contentData) {
+        if (contentData == null) {
+            return null;
+        }
+        try {
+            JsonNode jsonNode = OBJECT_MAPPER.readTree(contentData);
+            if (jsonNode.isTextual()) {
+                return jsonNode.asText();
+            }
+            return contentData;
+        } catch (Exception ignored) {
+            return contentData;
+        }
+    }
+
+    private String extractCreatorNickname(Item item) {
+        if (item.getStore() == null || item.getStore().getMember() == null) {
+            return null;
+        }
+        return item.getStore().getMember().getNickname();
+    }
+
+    private boolean resolveIsUsed(ItemDto.ItemPlacementRequest request, MyItem myItem) {
+        if (request.getIsUsed() != null) {
+            return request.getIsUsed();
+        }
+
+        // If coordinates are provided without explicit isUsed, treat it as "place".
+        if (request.getPosX() != null || request.getPosY() != null || request.getPosZ() != null) {
+            return true;
+        }
+
+        // Default action of this API is "place item".
+        return true;
+    }
+
+    private Position pickNonOverlappingPosition(MyItem targetItem) {
+        UUID tteokId = targetItem.getTteok().getId();
+        List<MyItem> placedItems = myItemRepository.findAllByTteokIdAndIsUsed(tteokId, true);
+        List<Position> occupied =
+                placedItems.stream()
+                        .filter(item -> !item.getId().equals(targetItem.getId()))
+                        .filter(item -> item.getPos_x() != null && item.getPos_y() != null)
+                        .map(
+                                item ->
+                                        new Position(
+                                                item.getPos_x(), item.getPos_y(), item.getPos_z()))
+                        .toList();
+
+        List<Position> candidates = buildGridCandidates();
+        for (Position candidate : candidates) {
+            if (!isOverlapping(candidate, occupied)) {
+                return candidate;
+            }
+        }
+
+        // Fallback: random tries if grid got saturated.
+        for (int i = 0; i < 100; i++) {
+            Position random = randomPosition();
+            if (!isOverlapping(random, occupied)) {
+                return random;
+            }
+        }
+
+        // Last resort: return any valid position.
+        return randomPosition();
+    }
+
+    private List<Position> buildGridCandidates() {
+        List<Position> points = new ArrayList<>();
+        float centerX = (MIN_X + MAX_X) / 2f;
+        float centerY = (MIN_Y + MAX_Y) / 2f;
+
+        for (float y = MIN_Y; y <= MAX_Y; y += GRID_STEP) {
+            for (float x = MIN_X; x <= MAX_X; x += GRID_STEP) {
+                points.add(new Position(x, y, DEFAULT_Z));
+            }
+        }
+
+        points.sort(
+                Comparator.comparingDouble(
+                        p -> Math.pow(p.x() - centerX, 2) + Math.pow(p.y() - centerY, 2)));
+        return points;
+    }
+
+    private Position randomPosition() {
+        float x = (float) ThreadLocalRandom.current().nextDouble(MIN_X, MAX_X);
+        float y = (float) ThreadLocalRandom.current().nextDouble(MIN_Y, MAX_Y);
+        return new Position(x, y, DEFAULT_Z);
+    }
+
+    private boolean isOverlapping(Position candidate, List<Position> occupied) {
+        for (Position p : occupied) {
+            float dx = candidate.x() - p.x();
+            float dy = candidate.y() - p.y();
+            if ((dx * dx + dy * dy) < (MIN_DISTANCE * MIN_DISTANCE)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private record Position(float x, float y, float z) {}
 }

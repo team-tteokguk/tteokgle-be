@@ -1,10 +1,17 @@
 package com.advent.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 
+import com.advent.backend.common.error.exception.BusinessException;
 import com.advent.backend.dto.StoreDto;
+import com.advent.backend.entity.Item;
 import com.advent.backend.entity.Member;
+import com.advent.backend.entity.MyItem;
+import com.advent.backend.entity.MyTteok;
 import com.advent.backend.entity.Store;
 import com.advent.backend.entity.Subscription;
 import com.advent.backend.repository.ItemRepository;
@@ -132,5 +139,58 @@ class StoreServiceUnitTest {
         assertThat(summary.getStoreName()).isEqualTo("떡가게");
         assertThat(summary.getSellingItemTypeCount()).isEqualTo(2L);
         assertThat(summary.isFavorite()).isTrue();
+    }
+
+    @Test
+    @DisplayName("구매자가 동일 컨텐츠 고명을 이미 보유하면 구매를 막는다")
+    void should_ThrowException_When_BuyerAlreadyOwnsSameContent() {
+        UUID buyerId = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+
+        Member buyer = Member.builder().id(buyerId).nickname("구매자").build();
+        Store buyerStore = Store.builder().id(UUID.randomUUID()).member(buyer).title("내상점").build();
+        Item targetItem =
+                Item.builder()
+                        .id(itemId)
+                        .store(buyerStore)
+                        .contentType(Item.ContentType.VIDEO)
+                        .contentData("\"https://youtu.be/abc\"")
+                        .content("같은 메시지")
+                        .quantity(3)
+                        .isAvailable(true)
+                        .build();
+
+        Item ownedItem =
+                Item.builder()
+                        .id(UUID.randomUUID())
+                        .store(buyerStore)
+                        .contentType(Item.ContentType.VIDEO)
+                        .contentData("\"https://youtu.be/abc\"")
+                        .content("같은 메시지")
+                        .build();
+        MyItem myItem =
+                MyItem.builder().id(UUID.randomUUID()).member(buyer).item(ownedItem).build();
+
+        given(itemRepository.findById(itemId)).willReturn(java.util.Optional.of(targetItem));
+        given(memberRepository.findByIdWithLock(buyerId)).willReturn(java.util.Optional.of(buyer));
+        given(myTteokRepository.findByMemberId(buyerId))
+                .willReturn(
+                        java.util.Optional.of(
+                                MyTteok.builder().id(UUID.randomUUID()).member(buyer).build()));
+        given(myItemRepository.findByMemberId(buyerId)).willReturn(List.of(myItem));
+
+        assertThatThrownBy(() -> storeService.purchaseItem(buyerId, itemId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue(
+                        "errorCode", com.advent.backend.common.error.ErrorCode.ITEM_ALREADY_OWNED);
+
+        then(pointService)
+                .should(never())
+                .transfer(
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.anyInt(),
+                        org.mockito.ArgumentMatchers.anyString());
     }
 }

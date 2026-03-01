@@ -7,6 +7,8 @@ import com.advent.backend.dto.StoreDto;
 import com.advent.backend.entity.*;
 import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.repository.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StoreService {
     private static final int[] ITEM_COST_OPTIONS = {50, 100, 150, 200};
     private static final String DEFAULT_ITEM_NAME = "고명";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final StoreRepository storeRepository;
     private final ItemRepository itemRepository;
@@ -83,6 +86,9 @@ public class StoreService {
                         .findByMemberId(buyerId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.TTEOKGUK_NOT_FOUND));
 
+        // 5. 구매자가 동일 컨텐츠의 고명을 이미 보유 중이면 구매 불가
+        validateDuplicateOwnedItem(buyerId, item);
+
         // 5. 돈 송금하기
         pointService.transfer(buyer, seller, item.getId(), item.getCost(), item.getName());
 
@@ -97,6 +103,23 @@ public class StoreService {
         String txId = UUID.randomUUID().toString();
 
         log.info("[TX_SUCCESS] ID: {}, buyer: {}, seller: {}", txId, buyer.getId(), seller.getId());
+    }
+
+    private void validateDuplicateOwnedItem(UUID buyerId, Item targetItem) {
+        boolean alreadyOwned =
+                myItemRepository.findByMemberId(buyerId).stream()
+                        .map(MyItem::getItem)
+                        .anyMatch(ownedItem -> hasSameContent(ownedItem, targetItem));
+
+        if (alreadyOwned) {
+            throw new BusinessException(ErrorCode.ITEM_ALREADY_OWNED);
+        }
+    }
+
+    private boolean hasSameContent(Item left, Item right) {
+        return left.getContentType() == right.getContentType()
+                && Objects.equals(left.getContentData(), right.getContentData())
+                && Objects.equals(left.getContent(), right.getContent());
     }
 
     private void saveMyItem(Member buyer, Item item, MyTteok myTteok) {
@@ -203,6 +226,7 @@ public class StoreService {
 
         String imageUrl = normalizeBlankToNull(request.getImageUrl());
         String mediaUrl = normalizeBlankToNull(request.getMediaUrl());
+        String normalizedContentData = normalizeContentData(mediaUrl);
         String content = normalizeBlankToNull(request.getContent());
         String trimmedName = normalizeBlankToNull(request.getName());
         if (trimmedName == null) {
@@ -213,7 +237,13 @@ public class StoreService {
                 request.getContentType() == null ? Item.ContentType.NONE : request.getContentType();
 
         Item existingItem =
-                findSameContentItem(storeId, trimmedName, imageUrl, mediaUrl, content, contentType);
+                findSameContentItem(
+                        storeId,
+                        trimmedName,
+                        imageUrl,
+                        normalizedContentData,
+                        content,
+                        contentType);
         if (existingItem != null) {
             existingItem.addQuantity(sellCounts);
             return ItemDto.StoreItemResponse.from(existingItem);
@@ -226,7 +256,7 @@ public class StoreService {
                                 .name(trimmedName)
                                 .imageUrl(imageUrl)
                                 .contentType(contentType)
-                                .contentData(mediaUrl)
+                                .contentData(normalizedContentData)
                                 .content(content)
                                 .quantity(sellCounts)
                                 .isAvailable(sellCounts > 0)
@@ -283,6 +313,23 @@ public class StoreService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String normalizeContentData(String contentData) {
+        if (contentData == null) {
+            return null;
+        }
+
+        try {
+            OBJECT_MAPPER.readTree(contentData);
+            return contentData;
+        } catch (JsonProcessingException ignored) {
+            try {
+                return OBJECT_MAPPER.writeValueAsString(contentData);
+            } catch (JsonProcessingException e) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+            }
+        }
     }
 
     /** 상점 주인이 판매 중인 물건을 삭제 */
