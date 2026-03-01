@@ -38,8 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if ("OPTIONS".equalsIgnoreCase(method)) return true;
 
         // ✅ JWT 검사하면 안 되는 공개 엔드포인트들
-        return path.startsWith("/auth/login") // "/auth/login/GOOGLE" 포함
-                || path.equals("/auth/refresh")
+        return path.startsWith("/auth/")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-resources")
