@@ -51,10 +51,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = normalizePath(request);
+        boolean isNotificationPath = path.startsWith("/notifications");
         String token = jwtTokenProvider.resolveAccessToken(request);
 
         // ✅ 토큰 없으면 그냥 다음으로 (permitAll 경로 포함해서 정상 동작)
         if (token == null || token.isBlank()) {
+            if (isNotificationPath) {
+                log.info(
+                        "[인증] notifications 요청 토큰 없음: method={}, path={}",
+                        request.getMethod(),
+                        path);
+            }
             filterChain.doFilter(request, response);
             return;
         }
@@ -62,6 +70,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 토큰이 있는데 유효하지 않으면 컨텍스트 비우고 통과
         // (여기서 response.sendError(401) 같은 거 하면 공개 경로도 망가짐)
         if (!jwtTokenProvider.validateToken(token)) {
+            if (isNotificationPath) {
+                log.info(
+                        "[인증] notifications 요청 토큰 무효: method={}, path={}, source={}",
+                        request.getMethod(),
+                        path,
+                        resolveTokenSource(request, path));
+            }
             SecurityContextHolder.clearContext();
             filterChain.doFilter(request, response);
             return;
@@ -82,6 +97,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             customUserDetails, null, customUserDetails.getAuthorities());
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (isNotificationPath) {
+                log.info(
+                        "[인증] notifications 요청 인증 성공: method={}, path={}, memberId={}, source={}",
+                        request.getMethod(),
+                        path,
+                        member.getId(),
+                        resolveTokenSource(request, path));
+            }
 
         } catch (BusinessException e) {
             log.debug("JWT 인증 실패(BusinessException): {}", e.getErrorCode().getMessage());
@@ -92,5 +115,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String normalizePath(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isBlank() && path.startsWith(contextPath)) {
+            path = path.substring(contextPath.length());
+        }
+        return path;
+    }
+
+    private String resolveTokenSource(HttpServletRequest request, String path) {
+        String authorization = request.getHeader("Authorization");
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            return "header";
+        }
+        if (request.getCookies() != null) {
+            for (var cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName()) && cookie.getValue() != null) {
+                    return "cookie";
+                }
+            }
+        }
+        if (path.startsWith("/notifications/stream")) {
+            String tokenFromQuery = request.getParameter("accessToken");
+            if (tokenFromQuery != null && !tokenFromQuery.isBlank()) {
+                return "query";
+            }
+        }
+        return "unknown";
     }
 }
