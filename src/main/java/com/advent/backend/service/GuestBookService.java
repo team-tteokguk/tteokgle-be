@@ -53,7 +53,9 @@ public class GuestBookService {
         GuestBook savedGuestBook = guestBookRepository.save(guestBook);
 
         if (!store.getMember().getId().equals(writer.getId())) {
-            eventPublisher.publishEvent(new CommentEvent(writer, store.getMember(), guestBook));
+            eventPublisher.publishEvent(
+                    new CommentEvent(
+                            writer.getNickname(), store.getMember().getId(), store.getId()));
         }
 
         return converToResponse(savedGuestBook);
@@ -148,6 +150,7 @@ public class GuestBookService {
                 .id(guestBook.getId().toString())
                 .writerId(guestBook.getMember().getId().toString())
                 .writerNickname(guestBook.getMember().getNickname())
+                .writerImageUrl(guestBook.getMember().getProfileImage())
                 .content(guestBook.getContent())
                 .createdAt(guestBook.getCreatedAt())
                 .build();

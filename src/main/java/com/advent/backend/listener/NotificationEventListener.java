@@ -3,10 +3,13 @@ package com.advent.backend.listener;
 import com.advent.backend.event.CommentEvent;
 import com.advent.backend.event.PurchaseEvent;
 import com.advent.backend.event.SubscribeEvent;
+import com.advent.backend.repository.MemberRepository;
 import com.advent.backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -15,10 +18,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class NotificationEventListener {
 
-    // [수정] final 키워드 필수! (그래야 의존성 주입이 됨)
     private final NotificationService notificationService;
+    private final MemberRepository memberRepository;
 
     /** 송금(구매) 알림 PurchaseEvent(Member sender, Member receiver, String itemName, ...) */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePurchaseEvent(PurchaseEvent event) {
         log.info(
@@ -33,26 +37,35 @@ public class NotificationEventListener {
                 event.sender().getNickname(), // 구매자 닉네임
                 event.itemName() // 상품명
                 );
+
+        notificationService.sendPurchaseNotification(
+                event.sender(), // 구매자 (알림 받을 사람)
+                event.receiver().getNickname(), // 판매자 닉네임
+                event.itemName() // 상품명
+                );
     }
 
-    /** 방명록 댓글 알림 CommentEvent(Member commenter, Member owner, GuestBook guestBook) */
+    /** 방명록 댓글 알림 CommentEvent(String commenterNickname, UUID ownerId, UUID storeId) */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleCommentEvent(CommentEvent event) {
-        log.info(
-                "[알림] 댓글 발생: {} -> {}",
-                event.commenter().getNickname(),
-                event.owner().getNickname());
+        var owner = memberRepository.findById(event.ownerId()).orElse(null);
+        if (owner == null) {
+            log.warn("[알림] 댓글 알림 스킵: 수신자 멤버를 찾을 수 없음 (ownerId={})", event.ownerId());
+            return;
+        }
 
-        // 방명록이 달린 상점 ID 추출
-        // (GuestBook 엔티티를 통해 Store ID를 가져옵니다)
+        log.info("[알림] 댓글 발생: {} -> {}", event.commenterNickname(), owner.getNickname());
+
         notificationService.sendCommentNotification(
-                event.owner(), // 상점 주인 (알림 받을 사람)
-                event.commenter().getNickname(), // 작성자 닉네임
-                event.guestBook().getStore().getId() // 상점 ID (링크 생성용)
+                owner, // 상점 주인 (알림 받을 사람)
+                event.commenterNickname(), // 작성자 닉네임
+                event.storeId() // 상점 ID (링크 생성용)
                 );
     }
 
     /** 구독 알림 SubscribeEvent(Member subscriber, Member target) */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleSubscribeEvent(SubscribeEvent event) {
         log.info(
