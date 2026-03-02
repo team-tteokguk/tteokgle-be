@@ -7,8 +7,11 @@ import static org.mockito.Mockito.verify;
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Notification;
 import com.advent.backend.repository.NotificationRepository;
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -111,5 +115,28 @@ class NotificationServiceTest {
         notificationService.readNotification(memberId);
 
         verify(notificationRepository).markAllAsReadByMemberId(memberId);
+    }
+
+    @Test
+    @DisplayName("SSE 재구독 시 기존 연결을 교체해 단일 연결만 유지한다")
+    void should_KeepSingleEmitter_WhenResubscribed() throws Exception {
+        UUID memberId = UUID.randomUUID();
+
+        SseEmitter firstEmitter = notificationService.subscribe(memberId);
+        SseEmitter secondEmitter = notificationService.subscribe(memberId);
+
+        Map<UUID, CopyOnWriteArrayList<SseEmitter>> emitters = getEmitters(notificationService);
+
+        assertThat(emitters.get(memberId)).hasSize(1);
+        assertThat(emitters.get(memberId)).contains(secondEmitter);
+        assertThat(emitters.get(memberId)).doesNotContain(firstEmitter);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<UUID, CopyOnWriteArrayList<SseEmitter>> getEmitters(
+            NotificationService service) throws Exception {
+        Field field = NotificationService.class.getDeclaredField("emitters");
+        field.setAccessible(true);
+        return (Map<UUID, CopyOnWriteArrayList<SseEmitter>>) field.get(service);
     }
 }

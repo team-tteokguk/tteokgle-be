@@ -5,6 +5,7 @@ import com.advent.backend.provider.JwtTokenProvider;
 import com.advent.backend.repository.MemberRepository;
 import com.advent.backend.service.handler.CustomLogoutSuccessHandler;
 import com.advent.backend.service.handler.OAuth2SuccessHandler;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,7 +53,10 @@ public class SecurityConfig {
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/auth/**")
+                                auth.dispatcherTypeMatchers(
+                                                DispatcherType.ASYNC, DispatcherType.ERROR)
+                                        .permitAll()
+                                        .requestMatchers("/auth/**")
                                         .permitAll()
                                         .requestMatchers(ALLOWED_URLS)
                                         .permitAll()

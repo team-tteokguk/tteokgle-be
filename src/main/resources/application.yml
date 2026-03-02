@@ -43,7 +43,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -63,3 +63,8 @@ aws:
     secret-key: ${AWS_SECRET_ACCESS_KEY:}
     presign-expiration-seconds: 300
     public-base-url: ${AWS_S3_PUBLIC_BASE_URL:}
+
+notification:
+  retention-days: ${NOTIFICATION_RETENTION_DAYS:10}
+  max-per-member: ${NOTIFICATION_MAX_PER_MEMBER:200}
+  cleanup-cron: ${NOTIFICATION_CLEANUP_CRON:0 0 4 * * *}

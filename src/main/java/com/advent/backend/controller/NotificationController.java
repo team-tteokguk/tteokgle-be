@@ -6,6 +6,7 @@ import com.advent.backend.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
@@ -19,6 +20,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RestController
 @RequestMapping("/notifications")
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationController {
     final NotificationService notificationService;
 
@@ -27,16 +29,25 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<Slice<NotificationDto.NotificationResponse>> getAllNotifications(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(
-                notificationService.getNotifications(
-                        customUserDetails.getMember().getId(), pageable));
+            @PageableDefault(size = 50) Pageable pageable) {
+        String memberId = customUserDetails.getMember().getId().toString();
+        log.info(
+                "[알림] 목록 조회 요청: memberId={}, page={}, size={}",
+                memberId,
+                pageable.getPageNumber(),
+                pageable.getPageSize());
+        return ResponseEntity.ok()
+                .header("X-Debug-Member-Id", memberId)
+                .body(
+                        notificationService.getNotifications(
+                                customUserDetails.getMember().getId(), pageable));
     }
 
     @Operation(summary = "알림 SSE 구독")
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribeNotification(
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        log.info("[SSE] 구독 요청: memberId={}", customUserDetails.getMember().getId());
         return notificationService.subscribe(customUserDetails.getMember().getId());
     }
 

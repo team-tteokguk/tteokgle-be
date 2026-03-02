@@ -107,6 +107,19 @@ public class JwtTokenProvider {
             return bearerToken.substring(7);
         }
 
+        // EventSource는 Authorization 헤더를 붙이기 어려워 SSE 구독 URL의 쿼리 토큰을 허용합니다.
+        String path = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (StringUtils.hasText(contextPath) && path.startsWith(contextPath)) {
+            path = path.substring(contextPath.length());
+        }
+        if (path.startsWith("/notifications/stream")) {
+            String tokenFromQuery = request.getParameter("accessToken");
+            if (StringUtils.hasText(tokenFromQuery)) {
+                return tokenFromQuery;
+            }
+        }
+
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("accessToken".equals(cookie.getName())

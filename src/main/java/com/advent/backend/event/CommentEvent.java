@@ -1,6 +1,5 @@
 package com.advent.backend.event;
 
-import com.advent.backend.entity.GuestBook;
-import com.advent.backend.entity.Member;
+import java.util.UUID;
 
-public record CommentEvent(Member commenter, Member owner, GuestBook guestBook) {}
+public record CommentEvent(String commenterNickname, UUID ownerId, UUID storeId) {}
