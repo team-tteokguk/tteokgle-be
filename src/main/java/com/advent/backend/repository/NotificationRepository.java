@@ -3,6 +3,7 @@ package com.advent.backend.repository;
 import com.advent.backend.entity.Member;
 import com.advent.backend.entity.Notification;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
@@ -33,4 +34,18 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     @Query(
             "UPDATE Notification n SET n.isRead = TRUE WHERE n.member.id = :memberId AND n.isRead = FALSE")
     void markAllAsReadByMemberId(@Param("memberId") UUID memberId);
+
+    @Query("SELECT n.id FROM Notification n WHERE n.createdAt < :threshold")
+    List<UUID> findIdsCreatedBefore(@Param("threshold") LocalDateTime threshold);
+
+    @Query(
+            value =
+                    "SELECT id "
+                            + "FROM ("
+                            + "    SELECT id, ROW_NUMBER() OVER (PARTITION BY member_id ORDER BY created_at DESC) AS rn "
+                            + "    FROM notifications"
+                            + ") t "
+                            + "WHERE t.rn > :maxPerMember",
+            nativeQuery = true)
+    List<UUID> findIdsExceedingLimitPerMember(@Param("maxPerMember") int maxPerMember);
 }
