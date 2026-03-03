@@ -58,8 +58,11 @@ public class StoreController {
     @Operation(summary = "고명 리스트 조회하기")
     @GetMapping("/{storeId}/items")
     public ResponseEntity<ItemDto.StoreItemSliceResponse> getItems(
-            @PathVariable UUID storeId, @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(storeService.getItems(storeId, pageable));
+            @PathVariable UUID storeId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(
+                storeService.getItems(customUserDetails.getMember().getId(), storeId, pageable));
     }
 
     @Operation(summary = "내 상점 고명 리스트 조회하기")

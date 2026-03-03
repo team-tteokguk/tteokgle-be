@@ -43,13 +43,22 @@ public class ItemDto {
         @Schema(description = "판매 수량")
         private int sellCounts;
 
+        @Schema(description = "로그인 유저 구매 여부")
+        @JsonProperty("isPurchased")
+        private boolean isPurchased;
+
         public static StoreItemResponse from(Item item) {
+            return from(item, false);
+        }
+
+        public static StoreItemResponse from(Item item, boolean isPurchased) {
             return StoreItemResponse.builder()
                     .id(item.getId())
                     .name(item.getName())
                     .imageUrl(item.getImageUrl())
                     .cost(item.getCost())
                     .sellCounts(item.getQuantity())
+                    .isPurchased(isPurchased)
                     .build();
         }
     }
