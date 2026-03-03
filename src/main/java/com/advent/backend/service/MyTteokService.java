@@ -11,8 +11,6 @@ import com.advent.backend.repository.MyItemRepository;
 import com.advent.backend.repository.MyTteokRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -33,7 +31,7 @@ public class MyTteokService {
     private static final float MIN_Y = 80f;
     private static final float MAX_Y = 360f;
     private static final float DEFAULT_Z = 1f;
-    private static final float GRID_STEP = 28f;
+    private static final int RANDOM_CANDIDATE_COUNT = 240;
 
     private final MyTteokRepository myTteokRepository;
     private final MyItemRepository myItemRepository;
@@ -274,11 +272,22 @@ public class MyTteokService {
                                                 item.getPos_x(), item.getPos_y(), item.getPos_z()))
                         .toList();
 
-        List<Position> candidates = buildGridCandidates();
-        for (Position candidate : candidates) {
-            if (!isOverlapping(candidate, occupied)) {
-                return candidate;
+        Position best = null;
+        float bestDistance = -1f;
+        for (int i = 0; i < RANDOM_CANDIDATE_COUNT; i++) {
+            Position candidate = randomPosition();
+            if (isOverlapping(candidate, occupied)) {
+                continue;
             }
+            float distance = nearestDistanceSquared(candidate, occupied);
+            if (distance > bestDistance) {
+                bestDistance = distance;
+                best = candidate;
+            }
+        }
+
+        if (best != null) {
+            return best;
         }
 
         // Fallback: random tries if grid got saturated.
@@ -291,23 +300,6 @@ public class MyTteokService {
 
         // Last resort: return any valid position.
         return randomPosition();
-    }
-
-    private List<Position> buildGridCandidates() {
-        List<Position> points = new ArrayList<>();
-        float centerX = (MIN_X + MAX_X) / 2f;
-        float centerY = (MIN_Y + MAX_Y) / 2f;
-
-        for (float y = MIN_Y; y <= MAX_Y; y += GRID_STEP) {
-            for (float x = MIN_X; x <= MAX_X; x += GRID_STEP) {
-                points.add(new Position(x, y, DEFAULT_Z));
-            }
-        }
-
-        points.sort(
-                Comparator.comparingDouble(
-                        p -> Math.pow(p.x() - centerX, 2) + Math.pow(p.y() - centerY, 2)));
-        return points;
     }
 
     private Position randomPosition() {
@@ -325,6 +317,23 @@ public class MyTteokService {
             }
         }
         return false;
+    }
+
+    private float nearestDistanceSquared(Position candidate, List<Position> occupied) {
+        if (occupied.isEmpty()) {
+            return Float.MAX_VALUE;
+        }
+
+        float minDistance = Float.MAX_VALUE;
+        for (Position p : occupied) {
+            float dx = candidate.x() - p.x();
+            float dy = candidate.y() - p.y();
+            float distance = dx * dx + dy * dy;
+            if (distance < minDistance) {
+                minDistance = distance;
+            }
+        }
+        return minDistance;
     }
 
     private record Position(float x, float y, float z) {}

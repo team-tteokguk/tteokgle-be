@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface MyItemRepository extends JpaRepository<MyItem, UUID> {
     List<MyItem> findAllByTteokIdAndIsUsed(UUID tteokId, boolean isUsed);
@@ -18,6 +20,11 @@ public interface MyItemRepository extends JpaRepository<MyItem, UUID> {
 
     // 멤버 아이디로 해당 멤버가 가지고 있는 고명 리스트 출력
     List<MyItem> findByMemberId(UUID memberId);
+
+    @Query(
+            "SELECT mi.item.id FROM MyItem mi WHERE mi.member.id = :memberId AND mi.item.id IN :itemIds")
+    List<UUID> findOwnedItemIdsByMemberIdAndItemIds(
+            @Param("memberId") UUID memberId, @Param("itemIds") List<UUID> itemIds);
 
     void deleteAllByMemberId(UUID memberId);
 

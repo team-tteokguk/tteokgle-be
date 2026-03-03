@@ -185,15 +185,19 @@ public class StoreService {
      * @return ItemDto.StoreItemResponse
      */
     @Transactional(readOnly = true)
-    public ItemDto.StoreItemSliceResponse getItems(UUID storeId, Pageable pageable) {
+    public ItemDto.StoreItemSliceResponse getItems(UUID memberId, UUID storeId, Pageable pageable) {
         Store store =
                 storeRepository
                         .findById(storeId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         Slice<Item> itemSlice = itemRepository.findAllByStoreId(storeId, pageable);
+        Set<UUID> ownedItemIds = getOwnedItemIds(memberId, itemSlice.getContent());
         Slice<ItemDto.StoreItemResponse> mappedSlice =
-                itemSlice.map(ItemDto.StoreItemResponse::from);
+                itemSlice.map(
+                        item ->
+                                ItemDto.StoreItemResponse.from(
+                                        item, ownedItemIds.contains(item.getId())));
         long sellingItemCount = itemRepository.countByStoreIdAndIsAvailableTrue(storeId);
 
         return ItemDto.StoreItemSliceResponse.of(store.getTitle(), sellingItemCount, mappedSlice);
@@ -313,6 +317,16 @@ public class StoreService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private Set<UUID> getOwnedItemIds(UUID memberId, List<Item> items) {
+        if (items == null || items.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        List<UUID> itemIds = items.stream().map(Item::getId).toList();
+        return new HashSet<>(
+                myItemRepository.findOwnedItemIdsByMemberIdAndItemIds(memberId, itemIds));
     }
 
     private String normalizeContentData(String contentData) {

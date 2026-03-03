@@ -407,7 +407,8 @@ public class StoreServiceTest {
 
         Pageable pageable = PageRequest.of(0, 2, Sort.by("createdAt").descending());
 
-        ItemDto.StoreItemSliceResponse result = storeService.getItems(storeA.getId(), pageable);
+        ItemDto.StoreItemSliceResponse result =
+                storeService.getItems(memberA.getId(), storeA.getId(), pageable);
 
         assertThat(result.getItems()).hasSize(2);
         assertThat(result.getPage().getPage()).isEqualTo(0);
