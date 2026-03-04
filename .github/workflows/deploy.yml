@@ -61,12 +61,21 @@ jobs:
 
             export IMAGE_TAG=${{ github.sha }}
 
-            docker compose down --remove-orphans || true
-
             docker compose pull app
-            docker compose up -d --force-recreate --no-deps app
+            docker compose up -d --force-recreate db redis app
 
             docker image prune -f
 
             docker compose ps
-            docker inspect -f 'APP image={{.Config.Image}} id={{.Image}}' $(docker compose ps -q app) || true
+            APP_CID=$(docker compose ps -q app)
+            if [ -z "$APP_CID" ]; then
+              echo "app container not found after deploy"
+              exit 1
+            fi
+
+            APP_STATE=$(docker inspect -f '{{.State.Status}}' "$APP_CID")
+            docker inspect -f 'APP image={{.Config.Image}} id={{.Image}} state={{.State.Status}}' "$APP_CID"
+            if [ "$APP_STATE" != "running" ]; then
+              docker compose logs --tail=200 app
+              exit 1
+            fi
